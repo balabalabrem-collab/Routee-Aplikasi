@@ -125,7 +125,6 @@
         <div class="footer-links">
             <h4>Destinasi</h4>
             <a href="{{ route('detail', 'maspati') }}">Kampung Maspati</a>
-            <a href="{{ route('detail', 'tjokroaminoto') }}">Rumah Tjokroaminoto</a>
             <a href="{{ route('detail', 'chenghoo') }}">Masjid Cheng Hoo</a>
             <a href="{{ route('detail', 'ampel') }}">Makam Sunan Ampel</a>
             <a href="{{ route('detail', 'dejavasche') }}">De Javasche Bank</a>

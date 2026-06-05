@@ -257,7 +257,7 @@ button { font-family: inherit; }
     transition: opacity var(--t);
 }
 .nav-logo:hover { opacity: .8; }
-.logo-img { height: 34px; width: auto; object-fit: contain; }
+.logo-img { height: 48px; width: auto; object-fit: contain; }
 .logo-text-fallback {
     display: none;
     font-size: 1.4rem;
@@ -368,7 +368,7 @@ button { font-family: inherit; }
 .hero-content { flex: 1; position: relative; z-index: 1; }
 
 .hero-logo { margin-bottom: 1.25rem; }
-.hero-logo-img { height: 52px; width: auto; }
+.hero-logo-img { height: 80px; width: auto; }
 .hero-logo-fallback { font-size: 1.8rem; font-weight: 900; color: var(--heading); }
 
 .hero-badge {
@@ -1013,6 +1013,124 @@ button { font-family: inherit; }
 .tips-list li::before { content: '→'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
 
 /* ===================================================
+   QUICK TRIP — Smart itinerary UI additions
+   =================================================== */
+
+/* ── Optimization banner ── */
+.optim-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, rgba(138,78,30,.08), rgba(211,152,88,.12));
+    border: 1.5px solid rgba(211,152,88,.35);
+    border-radius: var(--radius);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.optim-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.optim-icon { font-size: 2rem; flex-shrink: 0; }
+.optim-text { display: flex; flex-direction: column; }
+.optim-text strong { font-size: .93rem; color: var(--heading); font-weight: 800; }
+.optim-text span   { font-size: .78rem; color: var(--text-muted); margin-top: .15rem; }
+
+.optim-chips { display: flex; gap: .6rem; flex-wrap: wrap; }
+.optim-chip {
+    background: var(--bg-card);
+    border: 1px solid rgba(211,152,88,.4);
+    color: var(--heading);
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .3rem .75rem;
+    border-radius: 100px;
+    white-space: nowrap;
+}
+
+/* ── Area group divider inside timeline ── */
+.tl-area-group {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin: 1.75rem 0 1rem;
+    padding: 0 .25rem;
+}
+.tl-area-icon { font-size: .85rem; flex-shrink: 0; }
+.tl-area-name {
+    font-size: .8rem;
+    font-weight: 800;
+    color: var(--heading);
+    white-space: nowrap;
+}
+.tl-area-line { flex: 1; height: 1px; background: var(--border); }
+.tl-area-note {
+    font-size: .7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-style: italic;
+}
+
+/* ── Status badges in .tl-time column ── */
+.tl-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .2rem;
+    min-width: 64px;
+}
+.tl-status {
+    display: inline-block;
+    font-size: .62rem;
+    font-weight: 700;
+    padding: .18rem .55rem;
+    border-radius: 100px;
+    white-space: nowrap;
+    text-align: center;
+    max-width: 90px;
+    line-height: 1.4;
+}
+.tl-status-open {
+    background: rgba(39,174,96,.15);
+    color: #1e7e34;
+    border: 1px solid rgba(39,174,96,.35);
+}
+.tl-status-rec {
+    background: rgba(52,152,219,.12);
+    color: #1565c0;
+    border: 1px solid rgba(52,152,219,.35);
+}
+.tl-status-warn {
+    background: rgba(243,156,18,.12);
+    color: #8B5E00;
+    border: 1px solid rgba(243,156,18,.35);
+}
+.tl-status-food {
+    background: rgba(232,131,74,.14);
+    color: #b34700;
+    border: 1px solid rgba(232,131,74,.35);
+    font-size: .65rem;
+}
+
+/* ── End marker optimization note ── */
+.tl-end-optim {
+    display: block;
+    font-size: .74rem;
+    color: #1e7e34;
+    background: rgba(39,174,96,.1);
+    border: 1px solid rgba(39,174,96,.25);
+    border-radius: var(--radius-sm);
+    padding: .3rem .65rem;
+    margin-top: .4rem;
+    width: fit-content;
+}
+
+
+
+/* ===================================================
    MAP PAGE
    =================================================== */
 .map-layout {
@@ -1137,23 +1255,29 @@ button { font-family: inherit; }
 .route-sum-row strong { color: var(--heading); }
 
 /* ===================================================
-   EXPLORE PAGE
+   EXPLORE PAGE — tab bar
    =================================================== */
+
+/* Container: full width, border-bottom only */
 .tab-bar {
     display: flex;
-    gap: .35rem;
+    gap: 0;
+    width: 100%;
     background: var(--bg-card);
-    border-radius: var(--radius);
-    padding: .45rem;
-    margin-bottom: 2.5rem;
+    border-radius: var(--radius) var(--radius) 0 0;
     border: 1.5px solid var(--border);
+    border-bottom: 2px solid var(--border);
     box-shadow: 0 2px 14px var(--shadow);
-    width: fit-content;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+    padding: 0;
 }
+
 .tab-btn {
-    padding: .6rem 1.4rem;
-    border-radius: var(--radius-sm);
+    flex: 1;                     /* ← each tab stretches equally */
+    padding: .82rem 1.2rem;
     border: none;
+    border-bottom: 3px solid transparent;
     background: transparent;
     font-family: 'Poppins', sans-serif;
     font-size: .875rem;
@@ -1162,12 +1286,22 @@ button { font-family: inherit; }
     cursor: pointer;
     transition: all var(--t);
     white-space: nowrap;
+    text-align: center;
+    position: relative;
+    margin-bottom: -2px;         /* align with container border */
+    border-radius: 0;
 }
-.tab-btn:hover { color: var(--heading); background: var(--primary-lt); }
+.tab-btn:hover {
+    color: var(--heading);
+    background: var(--primary-lt);
+    border-bottom-color: rgba(211,152,88,.5);
+}
 .tab-btn.active {
-    background: var(--heading);
-    color: #fff;
-    box-shadow: 0 4px 16px var(--shadow-md);
+    background: transparent;
+    color: var(--heading);
+    font-weight: 700;
+    border-bottom: 3px solid var(--heading);
+    box-shadow: none;
 }
 
 .tab-content { display: none; }
@@ -1304,6 +1438,7 @@ button { font-family: inherit; }
 }
 .badge-heritage { background: rgba(138,78,30,.14); color: var(--heading); }
 .badge-religi   { background: rgba(46,125,50,.14); color: #2E7D32; }
+.badge-culinary { background: rgba(211,152,88,.18); color: var(--primary); }
 
 .detail-info h1 { font-size: 1.85rem; font-weight: 900; color: var(--heading); margin-bottom: .7rem; line-height: 1.2; }
 .detail-rating-row { display: flex; align-items: center; gap: .75rem; }
@@ -1659,3 +1794,659 @@ button { font-family: inherit; }
     .trip-title-row { flex-direction: column; align-items: flex-start; }
     .cta-actions { flex-direction: column; align-items: center; }
 }
+
+/* =====================================================
+   CUSTOM TRIP — Duration selector & result display
+   ===================================================== */
+
+/* Mode switcher toggle */
+.trip-mode-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    width: 100%;
+    box-shadow: 0 2px 12px var(--shadow);
+}
+.trip-mode-btn {
+    flex: 1;
+    padding: .8rem 1rem;
+    border: none;
+    background: transparent;
+    font-family: 'Poppins', sans-serif;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--t);
+    text-align: center;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1.5px;
+}
+.trip-mode-btn:hover { color: var(--heading); background: var(--primary-lt); }
+.trip-mode-btn.active {
+    color: var(--heading);
+    font-weight: 700;
+    border-bottom-color: var(--heading);
+    background: transparent;
+}
+
+/* Duration option buttons */
+.duration-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .85rem;
+    margin-bottom: 2rem;
+}
+.duration-btn {
+    padding: 1.25rem .75rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--t);
+    box-shadow: 0 2px 12px var(--shadow);
+}
+.duration-btn:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px var(--shadow-md);
+}
+.duration-btn.selected {
+    border-color: var(--heading);
+    background: var(--heading);
+    color: #fff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px var(--shadow-lg);
+}
+.duration-btn.selected .dur-icon,
+.duration-btn.selected .dur-label,
+.duration-btn.selected .dur-sites { color: #fff; }
+
+.dur-icon   { font-size: 1.8rem; display: block; margin-bottom: .4rem; }
+.dur-hours  { font-size: 1.3rem; font-weight: 900; color: var(--heading); display: block; }
+.dur-label  { font-size: .72rem; color: var(--text-muted); display: block; margin-top: .15rem; }
+.dur-sites  { font-size: .7rem; color: var(--primary); font-weight: 600; display: block; margin-top: .35rem; }
+
+/* Custom trip result panel */
+.custom-trip-result {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 2rem;
+    box-shadow: 0 4px 24px var(--shadow);
+    animation: fadeUp .4s ease;
+    margin-bottom: 2rem;
+}
+.custom-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+.custom-result-title { font-size: 1.15rem; font-weight: 800; color: var(--heading); }
+.custom-result-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.crs-stat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .38rem .85rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--heading);
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+/* Custom itinerary stop cards (compact) */
+.custom-stop-list { display: flex; flex-direction: column; gap: 1rem; }
+.custom-stop {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 1rem;
+    border: 1.5px solid var(--border);
+    transition: all var(--t);
+}
+.custom-stop:hover {
+    border-color: rgba(211,152,88,.4);
+    box-shadow: 0 4px 18px var(--shadow);
+}
+.custom-stop.custom-stop-food { border-left: 4px solid #e8834a; }
+
+.custom-stop-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--heading);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .85rem;
+    flex-shrink: 0;
+}
+.custom-stop-num.food-num { background: #e8834a; }
+
+.custom-stop-img {
+    width: 70px; height: 70px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.custom-stop-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.custom-stop-info { flex: 1; }
+.custom-stop-time  { font-size: .72rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: .15rem; }
+.custom-stop-info h4 { font-size: .92rem; font-weight: 700; color: var(--heading); margin-bottom: .2rem; }
+.custom-stop-info p  { font-size: .78rem; color: var(--text-muted); margin-bottom: .4rem; line-height: 1.45; }
+.custom-stop-meta    { display: flex; gap: .65rem; font-size: .74rem; color: var(--text-muted); flex-wrap: wrap; }
+
+.custom-stop-transit {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: .35rem 1rem;
+    margin-left: 2rem;
+}
+.cst-line { flex: 1; border-top: 1px dashed var(--border); }
+
+/* UMKM category-filter active */
+.umkm-cat-btn { flex: 1; }
+.umkm-grid-item-hidden { display: none !important; }
+
+/* Explore destination group headers */
+.dest-group-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2.5rem 0 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 2px solid var(--border);
+}
+.dest-group-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--heading);
+}
+.dest-group-badge {
+    background: var(--primary-lt);
+    border: 1px solid rgba(211,152,88,.3);
+    color: var(--heading);
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .65rem;
+    border-radius: 100px;
+}
+.dest-group-line { flex: 1; height: 1px; background: var(--border); }
+
+/* Result empty state */
+.custom-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+}
+.custom-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.custom-empty p    { font-size: .9rem; }
+
+@media (max-width: 640px) {
+    .duration-selector { grid-template-columns: repeat(2, 1fr); }
+    .trip-mode-toggle  { flex-direction: column; }
+    .custom-stop-img   { display: none; }
+}
+
+/* =====================================================
+   TRANSPORT PAGE — dual-button footer
+   ===================================================== */
+.transport-footer-double {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+.transport-pay-btn {
+    background: linear-gradient(135deg, #8A4E1E, #6B3210) !important;
+    border-color: #8A4E1E !important;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+.transport-pay-btn:hover {
+    background: linear-gradient(135deg, #6B3210, #4d2309) !important;
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+   PAYMENT PAGE — Layout & components
+   ===================================================== */
+
+/* Progress bar */
+.pay-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 2.5rem;
+    flex-wrap: nowrap;
+}
+.pay-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    min-width: 90px;
+}
+.pay-progress-step span {
+    font-size: .72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: center;
+}
+.pay-progress-step.active span { color: var(--heading); }
+.pay-progress-step.done   span { color: var(--primary);  }
+
+.pp-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 800; color: var(--text-muted);
+    transition: all .3s ease;
+}
+.pay-progress-step.active .pp-dot {
+    background: var(--heading);
+    border-color: var(--heading);
+    color: #fff;
+    box-shadow: 0 4px 14px var(--shadow-md);
+}
+.pay-progress-step.done .pp-dot {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.pay-progress-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    min-width: 40px;
+    max-width: 80px;
+    margin-bottom: 1.5rem;
+    transition: background .3s ease;
+}
+.pay-progress-line.done { background: var(--primary); }
+
+/* Two-column layout */
+.pay-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Generic pay card */
+.pay-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.pay-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(234,206,170,.3);
+}
+.pay-card-header h3 { font-size: .97rem; font-weight: 800; color: var(--heading); }
+
+/* Order summary */
+.pay-order-body { padding: 1.25rem 1.5rem; }
+.pay-transport-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    margin-bottom: 1.25rem;
+}
+.pay-transport-icon { font-size: 2.2rem; flex-shrink: 0; }
+.pay-transport-detail { flex: 1; }
+.pay-transport-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--heading);
+}
+.pay-transport-tag {
+    font-size: .75rem;
+    color: var(--text-muted);
+    margin-top: .15rem;
+}
+.pay-transport-price-badge {
+    background: var(--heading);
+    color: #fff;
+    padding: .35rem .9rem;
+    border-radius: 100px;
+    font-size: .82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Trip mini summary */
+.pay-trip-summary {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    padding: 1rem;
+}
+.pts-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: .75rem;
+}
+.pts-rows { display: flex; flex-direction: column; gap: .35rem; }
+.pts-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .76rem;
+    color: var(--text-muted);
+    padding: .28rem 0;
+    border-bottom: 1px solid rgba(211,152,88,.15);
+}
+.pts-row:last-child { border-bottom: none; }
+.pts-row span:last-child { font-weight: 600; color: var(--primary); }
+
+/* Payment methods */
+.pay-methods { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.pay-method-group {}
+.pay-method-label {
+    font-size: .72rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .6rem;
+}
+.pay-method-options { display: flex; flex-direction: column; gap: .55rem; }
+
+.pay-method-item {
+    cursor: pointer;
+    display: block;
+}
+.pay-method-item .pay-radio { display: none; }
+.pay-method-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .85rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    transition: all var(--t);
+}
+.pay-method-item:hover .pay-method-inner {
+    border-color: rgba(211,152,88,.5);
+    background: var(--bg-card);
+}
+.pay-method-item.selected .pay-method-inner {
+    border-color: var(--heading);
+    background: rgba(138,78,30,.06);
+    box-shadow: 0 2px 14px var(--shadow);
+}
+
+.pay-method-logo {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: .95rem; color: #fff;
+    flex-shrink: 0;
+}
+.pm-gopay   { background: #00AED6; }
+.pm-ovo     { background: #4C3494; }
+.pm-dana    { background: #118EEA; }
+.pm-bca     { background: #005EB8; font-size: .7rem; }
+.pm-mandiri { background: #003D79; }
+.pm-cash    { background: #27ae60; font-size: 1.1rem; }
+
+.pay-method-info { flex: 1; }
+.pay-method-info strong { display: block; font-size: .87rem; font-weight: 700; color: var(--heading); }
+.pay-method-info span   { font-size: .72rem; color: var(--text-muted); }
+
+.pay-method-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: all var(--t);
+    position: relative;
+}
+.pay-method-item.selected .pay-method-check {
+    background: var(--heading);
+    border-color: var(--heading);
+}
+.pay-method-item.selected .pay-method-check::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 900;
+}
+
+#pay-method-hint {
+    display: none;
+    font-size: .78rem;
+    color: #c0392b;
+    margin-top: .5rem;
+    padding: .35rem .75rem;
+    background: rgba(192,57,43,.08);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(192,57,43,.25);
+}
+
+/* Shake animation for method card when no selection */
+@keyframes payShake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+}
+.pay-shake { animation: payShake .45s ease; }
+
+/* Price breakdown sidebar */
+.pay-breakdown-card {}
+.pay-breakdown-rows { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: .6rem; }
+.pay-br-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .84rem;
+    color: var(--text-muted);
+}
+.pay-br-fee  { font-style: italic; }
+.pay-br-divider { height: 1px; background: var(--border); margin: .25rem 0; }
+.pay-br-total {
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--heading);
+}
+
+.pay-secure-note {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .72rem;
+    color: var(--text-muted);
+    padding: .75rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: rgba(39,174,96,.05);
+}
+
+/* Confirm button */
+.pay-confirm-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    transition: all .25s ease;
+}
+.pay-confirm-btn:disabled {
+    opacity: .75;
+    cursor: not-allowed;
+    transform: none !important;
+}
+.pay-confirm-icon { font-size: 1.15rem; }
+.pay-btn-ready { box-shadow: 0 8px 28px var(--shadow-lg); }
+
+.pay-disclaimer {
+    font-size: .72rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.5;
+}
+.pay-disclaimer a { color: var(--primary); text-decoration: underline; }
+
+/* ── SUCCESS OVERLAY ── */
+.pay-success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(52,21,15,.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.pay-success-box {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 80px rgba(52,21,15,.35);
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    animation: successPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes successPop {
+    from { transform: scale(.85) translateY(20px); opacity: 0; }
+    to   { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+/* SVG animated checkmark */
+.pay-check-wrap {
+    width: 72px; height: 72px;
+    margin: 0 auto 1.25rem;
+}
+.pay-check-svg { width: 100%; height: 100%; }
+.pay-check-circle {
+    stroke: #27ae60;
+    stroke-width: 2;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: checkCircle .75s ease forwards .1s;
+}
+.pay-check-tick {
+    stroke: #27ae60;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: checkTick .45s ease forwards .65s;
+}
+@keyframes checkCircle { to { stroke-dashoffset: 0; } }
+@keyframes checkTick   { to { stroke-dashoffset: 0; } }
+
+.pay-success-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--heading);
+    margin-bottom: .4rem;
+}
+.pay-success-sub {
+    font-size: 1.05rem;
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+/* Receipt rows */
+.pay-receipt {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 1rem;
+    text-align: left;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+}
+.pay-receipt-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .83rem;
+    color: var(--text-muted);
+    padding-bottom: .45rem;
+    border-bottom: 1px solid rgba(211,152,88,.15);
+}
+.pay-receipt-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pay-receipt-row strong { color: var(--heading); font-weight: 700; }
+
+.pay-status-badge {
+    background: rgba(39,174,96,.15);
+    color: #1e7e34;
+    padding: .15rem .65rem;
+    border-radius: 100px;
+    font-size: .76rem;
+    border: 1px solid rgba(39,174,96,.3);
+}
+
+.pay-success-note {
+    font-size: .78rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.pay-success-actions {
+    display: flex;
+    gap: .85rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+    .pay-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .pay-success-box { padding: 1.75rem 1.25rem; }
+    .pay-success-actions { flex-direction: column; }
+    .pay-progress-line { min-width: 24px; }
+}
+

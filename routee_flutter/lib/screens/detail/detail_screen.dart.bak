@@ -1,0 +1,251 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/data/destinations_data.dart';
+
+class DetailScreen extends StatelessWidget {
+  final String id;
+  const DetailScreen({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context) {
+    final destination = DestinationsData.findById(id) ?? DestinationsData.destinations.first;
+
+    Color catBg, catFg;
+    String catIcon;
+    switch (destination.category) {
+      case 'Heritage': catBg = AppColors.heritageBg; catFg = AppColors.heritageFg; catIcon = '🏛'; break;
+      case 'Religi': catBg = AppColors.religiBg; catFg = AppColors.religiFg; catIcon = '🕌'; break;
+      default: catBg = AppColors.culinaryBg; catFg = AppColors.culinaryFg; catIcon = '🍜';
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // ─── HERO IMAGE (SliverAppBar) ─────────────────
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            backgroundColor: AppColors.primary,
+            leading: GestureDetector(
+              onTap: () => context.pop(),
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    destination.image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, s) => Container(
+                      color: AppColors.primarySurface,
+                      child: const Icon(Icons.image_rounded, size: 60, color: AppColors.textMuted),
+                    ),
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black87],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16, left: 20, right: 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: catBg.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text('$catIcon ${destination.category}', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: catFg)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          destination.name,
+                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── CONTENT ───────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Rating + Action Buttons Row
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentSurface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 16, color: AppColors.accent),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${destination.rating} (Rating Pengunjung)',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tautan berhasil disalin!'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.share_rounded, color: AppColors.primary),
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.primarySurface,
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Info cards
+                  Row(
+                    children: [
+                      Expanded(child: _InfoCard(icon: Icons.schedule_rounded, label: 'Jam Buka', value: destination.hours, color: AppColors.primary)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _InfoCard(icon: Icons.local_activity_rounded, label: 'Tiket', value: destination.ticket, color: destination.ticket == 'Gratis' ? AppColors.success : AppColors.warning)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: _InfoCard(icon: Icons.timer_rounded, label: 'Durasi', value: destination.duration, color: AppColors.accent)),
+                      const SizedBox(width: 10),
+                      Expanded(child: _InfoCard(icon: Icons.location_on_rounded, label: 'Lokasi', value: destination.location, color: AppColors.error, isLong: true)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Description
+                  Text('Tentang Destinasi', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  const SizedBox(height: 8),
+                  Text(
+                    destination.description,
+                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.7),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // CTA
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.go('/trip'),
+                      icon: const Icon(Icons.route_rounded),
+                      label: const Text('Tambahkan ke Trip Planner'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.go('/map'),
+                      icon: const Icon(Icons.map_rounded),
+                      label: const Text('Lihat di Peta'),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  final bool isLong;
+
+  const _InfoCard({
+    required this.icon, required this.label,
+    required this.value, required this.color, this.isLong = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 8, offset: const Offset(0, 3))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: color),
+              ),
+              const SizedBox(width: 6),
+              Text(label, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textMuted)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.poppins(fontSize: isLong ? 10 : 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            maxLines: isLong ? 3 : 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}

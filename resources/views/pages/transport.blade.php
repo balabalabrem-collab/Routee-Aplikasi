@@ -25,9 +25,13 @@
         <!-- TRANSPORT CARDS -->
         <div class="transport-grid" id="transport-options">
             @foreach($options as $opt)
-            <div class="transport-card" id="transport-{{ $opt['id'] }}">
-                <div class="transport-icon-wrap">
-                    <span class="transport-icon">{{ $opt['icon'] }}</span>
+            <div class="transport-card" id="transport-{{ $opt['id'] }}" style="overflow: hidden; position: relative;">
+                <div style="margin: -2.5rem -2.5rem 1.5rem -2.5rem; width: calc(100% + 5rem); max-width: none;">
+                    <!-- IMAGE: {{ $opt['name'] }} Transport -->
+                    <img src="/images/{{ $opt['image'] }}" alt="{{ $opt['name'] }}" style="width: 100%; height: 200px; object-fit: cover; display: block;" onerror="this.src='/images/placeholder.jpg'">
+                </div>
+                <div class="transport-icon-wrap" style="position: relative; margin-top: -4rem; background: var(--bg-card); display: inline-flex; align-items: center; justify-content: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 4px solid var(--bg-card); margin-bottom: 1rem;">
+                    <span class="transport-icon" style="margin:0; font-size: 2rem;">{{ $opt['icon'] }}</span>
                 </div>
                 <div class="transport-body">
                     <h3>{{ $opt['name'] }}</h3>
@@ -53,32 +57,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="transport-footer">
-                    <button class="btn btn-primary btn-block"
-                            id="book-{{ $opt['id'] }}"
-                            onclick="bookTransport(event, '{{ $opt['name'] }}', '{{ $opt['price'] }}')">
-                        Pilih {{ $opt['name'] }}
-                    </button>
+                <div class="transport-footer" style="padding: 1.5rem;">
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                        Tersedia di area kedatangan atau dapat dipesan melalui aplikasi terpercaya.
+                    </div>
                 </div>
             </div>
             @endforeach
         </div>
 
-        <!-- BOOKING CONFIRMATION MODAL -->
-        <div class="modal-overlay" id="booking-modal" style="display:none;">
-            <div class="modal-box">
-                <div class="modal-icon">🎉</div>
-                <h2>Transportasi Dipilih!</h2>
-                <p>Kamu telah memilih <strong id="booking-name"></strong> dengan tarif <strong id="booking-price"></strong> per hari.</p>
-                <p style="color:var(--text-muted);font-size:.86rem;margin-top:.5rem;">
-                    Hubungi penyedia melalui aplikasi Gojek / Grab / lokal, atau langsung ke lokasi.
-                </p>
-                <div class="modal-actions">
-                    <a href="{{ route('trip') }}" class="btn btn-primary" id="modal-to-trip">📅 Lihat Itinerary</a>
-                    <button class="btn btn-outline" data-modal-close>Tutup</button>
-                </div>
-            </div>
-        </div>
+
 
         <!-- COMPARISON TABLE -->
         <div class="comparison-section" id="comparison-table" style="margin-top:4rem;">
@@ -149,34 +137,6 @@
 
 @section('scripts')
 <script>
-function bookTransport(e, name, price) {
-    e.stopPropagation();
-    // Select the card
-    const card = e.target.closest('.transport-card');
-    document.querySelectorAll('.transport-card').forEach(c => c.classList.remove('selected'));
-    if (card) card.classList.add('selected');
 
-    // Show modal
-    document.getElementById('booking-name').textContent  = name;
-    document.getElementById('booking-price').textContent = price;
-    document.getElementById('booking-modal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-// Close modal via [data-modal-close] buttons  (global JS handles this too, but be explicit)
-document.querySelectorAll('[data-modal-close]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.getElementById('booking-modal').style.display = 'none';
-        document.body.style.overflow = '';
-    });
-});
-
-// Backdrop close
-document.getElementById('booking-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-});
 </script>
 @endsection

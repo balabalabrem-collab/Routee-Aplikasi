@@ -60,12 +60,6 @@
             </div>
         </div>
 
-        <!-- TRUST BADGES -->
-        <div class="trust-row">
-            <span class="trust-item">✅ Rute Dioptimasi</span>
-            <span class="trust-item">✅ Tanpa Login</span>
-            <span class="trust-item">✅ Gratis 100%</span>
-        </div>
     </div>
 
     <div class="hero-visual">
@@ -179,25 +173,7 @@
                 </div>
             </a>
 
-            <!-- CARD: Rumah HOS Tjokroaminoto -->
-            <a href="{{ route('detail', 'tjokroaminoto') }}" class="dest-card" id="dest-tjokro">
-                <div class="dest-img-wrap">
-                    <!-- IMAGE: Rumah HOS Tjokroaminoto -->
-                    <img src="/images/tjokroaminoto.jpg" alt="Rumah HOS Tjokroaminoto"
-                         onerror="this.src='/images/placeholder.jpg'">
-                    <span class="dest-badge">Heritage</span>
-                    <div class="dest-img-overlay"></div>
-                </div>
-                <div class="dest-info">
-                    <h3>Rumah HOS Tjokroaminoto</h3>
-                    <p>Kos Bung Karno muda — rumah guru bangsa yang membentuk Indonesia.</p>
-                    <div class="dest-meta">
-                        <span>⏱ 30–45 menit</span>
-                        <span class="dest-rating">★ 4.7</span>
-                    </div>
-                    <div class="dest-cta">Lihat Detail →</div>
-                </div>
-            </a>
+
 
             <!-- CARD: Masjid Cheng Hoo -->
             <a href="{{ route('detail', 'chenghoo') }}" class="dest-card" id="dest-chenghoo">
@@ -258,6 +234,145 @@
                     <div class="dest-cta">Lihat Detail →</div>
                 </div>
             </a>
+            <!-- CARD: Jalan Tunjungan -->
+            <a href="{{ route('detail', 'tunjungan') }}" class="dest-card" id="dest-tunjungan">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Jalan Tunjungan -->
+                    <img src="/images/tunjungan.jpg" alt="Jalan Tunjungan"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Jalan Tunjungan</h3>
+                    <p>Jantung kota lama Surabaya yang melegenda. Deretan gedung kolonial, Hotel Majapahit bersejarah, dan bazar malam.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 45–90 menit</span>
+                        <span class="dest-rating">★ 4.6</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Gedung Siola -->
+            <a href="{{ route('detail', 'gedung-siola') }}" class="dest-card" id="dest-siola">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Museum Surabaya (Gedung Siola) -->
+                    <img src="/images/siola.jpg" alt="Museum Surabaya (Gedung Siola)"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Museum Surabaya (Siola)</h3>
+                    <p>Gedung putih megah era kolonial yang kini menjadi Museum Surabaya, menyimpan ribuan koleksi artefak dan peta kuno.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 60–90 menit</span>
+                        <span class="dest-rating">★ 4.5</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Kawasan Kota Lama -->
+            <a href="{{ route('detail', 'kota-lama') }}" class="dest-card" id="dest-kotalama">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Kawasan Kota Lama -->
+                    <img src="/images/kota-lama.jpg" alt="Kawasan Kota Lama"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Kawasan Kota Lama</h3>
+                    <p>Pusat perdagangan kolonial abad 17, deretan gudang tua dan jembatan bersejarah dengan lanskap yang memikat.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 60–90 menit</span>
+                        <span class="dest-rating">★ 4.7</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Klenteng Kenjeran -->
+            <a href="{{ route('detail', 'klenteng-kenjeran') }}" class="dest-card" id="dest-kenjeran">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Klenteng Kenjeran -->
+                    <img src="/images/kenjeran.jpg" alt="Klenteng Kenjeran"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge dest-badge-religi">Religi</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Klenteng Sanggar Agung</h3>
+                    <p>Klenteng megah di tepi pantai Kenjeran dengan patung Dewi Kwan Im raksasa menghadap laut yang fotogenik.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 30–45 menit</span>
+                        <span class="dest-rating">★ 4.6</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Alun-Alun Surabaya -->
+            <a href="{{ route('detail', 'alun-alun') }}" class="dest-card" id="dest-alunalun">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Alun-Alun Surabaya -->
+                    <img src="/images/alun-alun.jpg" alt="Alun-Alun Surabaya"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Alun-Alun Surabaya</h3>
+                    <p>Ruang publik kekinian di kompleks bawah tanah Balai Pemuda. Pusat seni, budaya, dan hiburan modern dengan semangat masa lalu.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 45–60 menit</span>
+                        <span class="dest-rating">★ 4.8</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Taman Bungkul -->
+            <a href="{{ route('detail', 'taman-bungkul') }}" class="dest-card" id="dest-bungkul">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Taman Bungkul -->
+                    <img src="/images/bungkul.jpg" alt="Taman Bungkul"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Taman Bungkul</h3>
+                    <p>Taman kota pemenang penghargaan internasional. Pusat rekreasi asri dengan wisata religi makam Sunan Bungkul di dalamnya.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 30–45 menit</span>
+                        <span class="dest-rating">★ 4.7</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- CARD: Monumen Kapal Selam -->
+            <a href="{{ route('detail', 'kalimas') }}" class="dest-card" id="dest-kalimas">
+                <div class="dest-img-wrap">
+                    <!-- IMAGE: Monumen Kapal Selam Kalimas -->
+                    <img src="/images/kapal-selam.jpg" alt="Monumen Kapal Selam Kalimas"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <span class="dest-badge">Heritage</span>
+                    <div class="dest-img-overlay"></div>
+                </div>
+                <div class="dest-info">
+                    <h3>Monumen Kapal Selam</h3>
+                    <p>Kapal selam KRI Pasopati asli yang difungsikan jadi monumen dan museum sejarah maritim di tepi Kali Mas.</p>
+                    <div class="dest-meta">
+                        <span>⏱ 45–60 menit</span>
+                        <span class="dest-rating">★ 4.5</span>
+                    </div>
+                    <div class="dest-cta">Lihat Detail →</div>
+                </div>
+            </a>
 
         </div>
         <div class="section-actions">
@@ -279,7 +394,7 @@
         <div class="culinary-grid">
 
             <!-- RAWON SETAN -->
-            <div class="culinary-card" id="culinary-rawon">
+            <a href="{{ route('detail', 'rawon') }}" class="culinary-card" id="culinary-rawon">
                 <div class="culinary-img-wrap">
                     <!-- IMAGE: Rawon Setan -->
                     <img src="/images/rawon.jpg" alt="Rawon Setan"
@@ -296,11 +411,12 @@
                         <span>⏱ 30–45 menit</span>
                         <span>💰 Rp 30.000 – 45.000</span>
                     </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
                 </div>
-            </div>
+            </a>
 
             <!-- LONTONG BALAP -->
-            <div class="culinary-card" id="culinary-lontong">
+            <a href="{{ route('detail', 'lontong-balap') }}" class="culinary-card" id="culinary-lontong">
                 <div class="culinary-img-wrap">
                     <!-- IMAGE: Lontong Balap -->
                     <img src="/images/lontong.jpg" alt="Lontong Balap"
@@ -317,8 +433,97 @@
                         <span>⏱ 20–30 menit</span>
                         <span>💰 Rp 20.000 – 30.000</span>
                     </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
                 </div>
-            </div>
+            </a>
+
+            <!-- RUJAK CINGUR -->
+            <a href="{{ route('detail', 'rujak-cingur') }}" class="culinary-card" id="culinary-rujak">
+                <div class="culinary-img-wrap">
+                    <!-- IMAGE: Rujak Cingur -->
+                    <img src="/images/rujak.jpeg" alt="Rujak Cingur"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <div class="culinary-badge"><span>📍 ≤ 1km</span></div>
+                </div>
+                <div class="culinary-info">
+                    <div class="culinary-header">
+                        <h3>Rujak Cingur</h3>
+                        <span class="culinary-rating">★ 4.7</span>
+                    </div>
+                    <p>Rujak khas Jawa Timur dengan irisan cingur, sayuran, dan bumbu petis pekat.</p>
+                    <div class="culinary-meta">
+                        <span>⏱ 20–30 menit</span>
+                        <span>💰 Rp 20.000 – 35.000</span>
+                    </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- SOTO PAK SADI -->
+            <a href="{{ route('detail', 'soto-pak-sadi') }}" class="culinary-card" id="culinary-soto">
+                <div class="culinary-img-wrap">
+                    <!-- IMAGE: Soto Pak Sadi -->
+                    <img src="/images/soto-sadi.jpg" alt="Soto Pak Sadi"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <div class="culinary-badge"><span>📍 ≤ 500m</span></div>
+                </div>
+                <div class="culinary-info">
+                    <div class="culinary-header">
+                        <h3>Soto Pak Sadi</h3>
+                        <span class="culinary-rating">★ 4.7</span>
+                    </div>
+                    <p>Soto Surabaya legendaris dengan kuah bening kaya rempah, ayam kampung, dan tauge.</p>
+                    <div class="culinary-meta">
+                        <span>⏱ 20–30 menit</span>
+                        <span>💰 Rp 18.000 – 28.000</span>
+                    </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- TAHU TEK -->
+            <a href="{{ route('detail', 'tahu-tek') }}" class="culinary-card" id="culinary-tahutek">
+                <div class="culinary-img-wrap">
+                    <!-- IMAGE: Tahu Tek -->
+                    <img src="/images/tahu-tek.jpg" alt="Tahu Tek"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <div class="culinary-badge"><span>📍 ≤ 1km</span></div>
+                </div>
+                <div class="culinary-info">
+                    <div class="culinary-header">
+                        <h3>Tahu Tek</h3>
+                        <span class="culinary-rating">★ 4.6</span>
+                    </div>
+                    <p>Tahu goreng setengah matang disiram bumbu kacang petis dan lontong.</p>
+                    <div class="culinary-meta">
+                        <span>⏱ 15–25 menit</span>
+                        <span>💰 Rp 12.000 – 20.000</span>
+                    </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
+                </div>
+            </a>
+
+            <!-- ZANGRANDI -->
+            <a href="{{ route('detail', 'zangrandi') }}" class="culinary-card" id="culinary-zangrandi">
+                <div class="culinary-img-wrap">
+                    <!-- IMAGE: Es Krim Zangrandi -->
+                    <img src="/images/zangrandi.jpg" alt="Es Krim Zangrandi"
+                         onerror="this.src='/images/placeholder.jpg'">
+                    <div class="culinary-badge"><span>📍 ≤ 500m</span></div>
+                </div>
+                <div class="culinary-info">
+                    <div class="culinary-header">
+                        <h3>Es Krim Zangrandi</h3>
+                        <span class="culinary-rating">★ 4.8</span>
+                    </div>
+                    <p>Es krim legendaris Surabaya sejak 1933 dengan racikan Italia dan buah tropis.</p>
+                    <div class="culinary-meta">
+                        <span>⏱ 30–45 menit</span>
+                        <span>💰 Rp 25.000 – 55.000</span>
+                    </div>
+                    <div class="dest-cta" style="margin-top:.6rem;">Lihat Detail →</div>
+                </div>
+            </a>
 
         </div>
     </div>

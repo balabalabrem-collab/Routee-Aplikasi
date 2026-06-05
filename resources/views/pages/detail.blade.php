@@ -4,14 +4,25 @@
 
 @section('content')
 
-<!-- BREADCRUMB -->
-<div class="breadcrumb-bar">
+<!-- PAGE HERO -->
+<div class="page-hero page-hero-sm">
     <div class="container">
-        <a href="{{ route('home') }}">Home</a>
-        <span>›</span>
-        <a href="{{ route('explore') }}">Explore</a>
-        <span>›</span>
-        <span>{{ $destination['name'] }}</span>
+        <nav class="detail-breadcrumb">
+            <a href="{{ route('home') }}">Home</a>
+            <span>›</span>
+            <a href="{{ route('explore') }}">Explore</a>
+            <span>›</span>
+            <span>{{ $destination['name'] }}</span>
+        </nav>
+        <span class="section-label">{{ $destination['category'] }}</span>
+        <h1>{{ $destination['name'] }}</h1>
+        <p>
+            <span style="color:rgba(255,255,255,.85);">★ {{ $destination['rating'] }} / 5.0</span>
+            &nbsp;·&nbsp;
+            <span style="color:rgba(255,255,255,.75);">⏱ {{ $destination['duration'] }}</span>
+            &nbsp;·&nbsp;
+            <span style="color:rgba(255,255,255,.75);">🎟 {{ $destination['ticket'] }}</span>
+        </p>
     </div>
 </div>
 
@@ -50,7 +61,7 @@
             <!-- RIGHT: INFO -->
             <div class="detail-info">
                 <div class="detail-header">
-                    <span class="detail-cat-badge {{ $destination['category'] === 'Religi' ? 'badge-religi' : 'badge-heritage' }}">
+                    <span class="detail-cat-badge {{ $destination['category'] === 'Religi' ? 'badge-religi' : ($destination['category'] === 'Kuliner' ? 'badge-culinary' : 'badge-heritage') }}">
                         {{ $destination['category'] }}
                     </span>
                     <h1>{{ $destination['name'] }}</h1>
@@ -100,18 +111,12 @@
 
                 <!-- ACTION BUTTONS -->
                 <div class="detail-actions">
-                    <button class="btn btn-primary btn-lg" id="add-to-trip-btn"
-                            onclick="addToTrip('{{ $destination['name'] }}')">
-                        + Tambah ke Trip
-                    </button>
-                    <a href="{{ route('trip') }}" class="btn btn-outline btn-lg" id="view-itinerary-btn">
-                        Lihat Itinerary
+                    <a href="{{ route('trip') }}" class="btn btn-primary btn-lg" id="view-itinerary-btn">
+                        🗺️ Rencanakan Trip dari Sini
                     </a>
-                </div>
-
-                <!-- ADDED TOAST -->
-                <div class="toast-msg" id="toast-msg" style="display:none;">
-                    ✅ Berhasil ditambahkan ke trip!
+                    <a href="{{ route('explore') }}" class="btn btn-outline btn-lg" id="explore-more-btn">
+                        🔍 Lihat Destinasi Lain
+                    </a>
                 </div>
 
                 <!-- NEARBY CULINARY -->
@@ -150,9 +155,9 @@
                     <img src="/images/maspati.jpg" alt="Kampung Lawas Maspati" onerror="this.src='/images/placeholder.jpg'">
                     <span>Kampung Maspati</span>
                 </a>
-                <a href="{{ route('detail', 'tjokroaminoto') }}" class="more-card {{ $destination['id'] === 'tjokroaminoto' ? 'more-card-active' : '' }}" id="more-tjokro">
-                    <img src="/images/tjokroaminoto.jpg" alt="Rumah Tjokroaminoto" onerror="this.src='/images/placeholder.jpg'">
-                    <span>Rumah Tjokroaminoto</span>
+                <a href="{{ route('detail', 'tunjungan') }}" class="more-card {{ $destination['id'] === 'tunjungan' ? 'more-card-active' : '' }}" id="more-tunjungan">
+                    <img src="/images/tunjungan.jpg" alt="Jalan Tunjungan" onerror="this.src='/images/placeholder.jpg'">
+                    <span>Jalan Tunjungan</span>
                 </a>
                 <a href="{{ route('detail', 'chenghoo') }}" class="more-card {{ $destination['id'] === 'chenghoo' ? 'more-card-active' : '' }}" id="more-chenghoo">
                     <img src="/images/chenghoo.jpg" alt="Masjid Cheng Hoo" onerror="this.src='/images/placeholder.jpg'">
@@ -174,15 +179,19 @@
 @endsection
 
 @section('scripts')
-<script>
-function addToTrip(name) {
-    const btn = document.getElementById('add-to-trip-btn');
-    const toast = document.getElementById('toast-msg');
-    btn.textContent = '✅ Ditambahkan!';
-    btn.disabled = true;
-    btn.style.background = '#27ae60';
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+<style>
+.detail-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .82rem;
+    color: rgba(255,255,255,.7);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }
-</script>
+.detail-breadcrumb a { color: rgba(255,255,255,.8); text-decoration: none; }
+.detail-breadcrumb a:hover { color: #fff; text-decoration: underline; }
+.detail-breadcrumb span { color: rgba(255,255,255,.5); }
+</style>
 @endsection

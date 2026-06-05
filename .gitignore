@@ -1,5 +1,6 @@
 *.log
 .DS_Store
+routee_flutter.zip
 .env
 .env.backup
 .env.production

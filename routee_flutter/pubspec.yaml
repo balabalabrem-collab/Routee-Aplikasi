@@ -1,0 +1,65 @@
+name: routee_flutter
+description: "Routee — 1-Day Heritage Trip Planner Surabaya"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.2
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # Maps
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # UI Enhancements
+  shimmer: ^3.0.0
+  smooth_page_indicator: ^1.1.0
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  url_launcher: ^6.3.0
+  intl: ^0.20.1
+
+  # Navigation & Location
+  geolocator: ^13.0.2
+  flutter_local_notifications: ^18.0.1
+  http: ^1.2.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo_glossy.png"
+  adaptive_icon_background: "#FAF6F1"
+  adaptive_icon_foreground: "assets/images/logo_launcher_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/images/logo_glossy.png"
+
+
+
+
