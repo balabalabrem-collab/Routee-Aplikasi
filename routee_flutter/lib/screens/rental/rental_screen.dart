@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/data/driver_data.dart';
 import '../../core/data/destinations_data.dart';
+import '../../core/data/terminal_data.dart';
 import '../../core/models/itinerary_model.dart';
 import '../../providers/rental_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -533,13 +534,11 @@ class _RentalScreenState extends State<RentalScreen> {
     // Get coordinates for start point
     double startLat = -7.2653;
     double startLng = 112.7519;
-    if (_ojekStart == 'Stasiun Pasar Turi') {
-      startLat = -7.2483;
-      startLng = 112.7364;
-    } else if (_ojekStart == 'Terminal Purabaya') {
-      startLat = -7.3524;
-      startLng = 112.7244;
-    }
+    try {
+      final matchedTerminal = TerminalData.terminals.firstWhere((t) => t.name == _ojekStart);
+      startLat = matchedTerminal.lat;
+      startLng = matchedTerminal.lng;
+    } catch (_) {}
 
     // Resolve destination coordinates
     double dest1Lat = startLat;
@@ -596,7 +595,7 @@ class _RentalScreenState extends State<RentalScreen> {
     final int driverPrice = bbmPrice + jasaDriverPrice;
     final int basePrice = vehiclePrice + driverPrice;
 
-    final terminalOptions = ['Stasiun Gubeng', 'Stasiun Pasar Turi', 'Terminal Purabaya'];
+    final terminalOptions = TerminalData.terminals.map((t) => t.name).toList();
     final destinationOptions = DestinationsData.destinations.map((d) => d.name).toList();
     final destinationOptionsWithNone = ['-', ...destinationOptions];
     final timeOptions = ['09:00 WIB', '11:00 WIB', '13:00 WIB', '15:00 WIB', '17:00 WIB'];

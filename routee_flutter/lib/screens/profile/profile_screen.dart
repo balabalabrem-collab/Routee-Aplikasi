@@ -34,6 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bookmark = context.watch<BookmarkProvider>();
     final isLoggedIn = auth.isLoggedIn;
     final user = auth.currentUser;
+    
+    _currentLang = language.currentLanguage;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -129,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         border: Border.all(color: AppColors.accent, width: 1),
                       ),
                       child: Text(
-                        '⭐ Member Silver',
+                        '⭐ ' + language.translate('member_silver'),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -139,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ] else ...[
                     Text(
-                      'Mode Tamu (Guest Mode)',
+                      language.translate('guest_mode'),
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -148,7 +150,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Masuk untuk akses fitur pemesanan & rental',
+                      language.translateText(
+                        id: 'Masuk untuk akses fitur pemesanan & rental',
+                        en: 'Log in to access booking & rental features',
+                      ),
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white70,
@@ -165,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          'Login / Daftar Sekarang',
+                          language.translate('login_cta'),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -215,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   if (isLoggedIn && user?.role == 'admin') ...[
                     Text(
-                      'Panel Administrator',
+                      language.translateText(id: 'Panel Administrator', en: 'Administrator Panel'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -225,21 +230,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     _buildMenuItem(
                       icon: Icons.dashboard_rounded,
-                      title: 'Dashboard Keuangan',
-                      subtitle: 'Laporan pendapatan, rental, dan statistik transaksi',
+                      title: language.translateText(id: 'Dashboard Keuangan', en: 'Financial Dashboard'),
+                      subtitle: language.translateText(id: 'Laporan pendapatan, rental, dan statistik transaksi', en: 'Income report, rentals, and transaction stats'),
                       onTap: () => _showAdminFinanceBottomSheet(context),
                     ),
                     _buildMenuItem(
                       icon: Icons.people_rounded,
-                      title: 'Manajemen Karyawan & Driver',
-                      subtitle: 'Daftar staff operational dan driver aktif',
+                      title: language.translateText(id: 'Manajemen Karyawan & Driver', en: 'Employee & Driver Management'),
+                      subtitle: language.translateText(id: 'Daftar staff operational dan driver aktif', en: 'Active operational staff and driver list'),
                       onTap: () => _showAdminEmployeesBottomSheet(context),
                     ),
                     const SizedBox(height: 16),
                   ],
                   if (isLoggedIn && user?.role == 'karyawan') ...[
                     Text(
-                      'Panel Karyawan',
+                      language.translateText(id: 'Panel Karyawan', en: 'Employee Panel'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -249,14 +254,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     _buildMenuItem(
                       icon: Icons.assignment_rounded,
-                      title: 'Tugas Operasional',
-                      subtitle: 'Monitoring penjemputan ojek dan status unit',
+                      title: language.translateText(id: 'Tugas Operasional', en: 'Operational Tasks'),
+                      subtitle: language.translateText(id: 'Monitoring penjemputan ojek dan status unit', en: 'Ojek pickup monitoring and unit status'),
                       onTap: () => _showKaryawanOpsBottomSheet(context),
                     ),
                     const SizedBox(height: 16),
                   ],
                   Text(
-                    'Akun & Keamanan',
+                    language.translate('account_security'),
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -266,31 +271,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     icon: Icons.person_outline_rounded,
-                    title: 'Ubah Data Diri',
-                    subtitle: 'Kelola nama, nomor telepon, dan email',
+                    title: language.translate('change_profile'),
+                    subtitle: language.translate('change_profile_sub'),
                     onTap: isLoggedIn
                         ? () => _showEditProfileBottomSheet(context, auth)
                         : null,
                   ),
                   _buildMenuItem(
                     icon: Icons.lock_reset_rounded,
-                    title: 'Ubah Password',
-                    subtitle: 'Ganti kata sandi akun secara berkala',
+                    title: language.translate('change_pass'),
+                    subtitle: language.translate('change_pass_sub'),
                     onTap: isLoggedIn
                         ? () => _showEditPasswordBottomSheet(context, auth)
                         : null,
                   ),
                   _buildMenuItem(
                     icon: Icons.history_rounded,
-                    title: 'Riwayat Transaksi',
-                    subtitle: 'Lihat semua penyewaan dan pembayaran kamu',
+                    title: language.translate('tx_history'),
+                    subtitle: language.translate('tx_history_sub'),
                     onTap: isLoggedIn
                         ? () => _showTransactionHistoryBottomSheet(context, rental)
                         : null,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aplikasi & Bantuan',
+                    language.translate('app_help'),
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -300,13 +305,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   _buildMenuItem(
                     icon: Icons.notifications_none_rounded,
-                    title: 'Notifikasi',
-                    subtitle: 'Atur pemberitahuan perjalanan & promo',
+                    title: language.translate('notifications'),
+                    subtitle: language.translate('notifications_sub'),
                     onTap: () => _showNotificationsBottomSheet(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.language_rounded,
-                    title: 'Bahasa',
+                    title: language.translate('language'),
                     subtitle: _currentLang,
                     trailing: Text(
                       _currentLang == 'English' ? 'EN' : 'ID',
@@ -320,8 +325,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   _buildMenuItem(
                     icon: Icons.info_outline_rounded,
-                    title: 'Tentang Routee',
-                    subtitle: 'Versi 1.1.0 • Surabaya Heritage App',
+                    title: language.translate('about'),
+                    subtitle: language.translate('about_sub'),
                     onTap: () => _showAboutBottomSheet(context),
                   ),
                   if (isLoggedIn) ...[
@@ -333,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: () => _showLogoutDialog(context, auth),
                         icon: const Icon(Icons.logout_rounded, color: AppColors.error),
                         label: Text(
-                          'Keluar dari Akun',
+                          language.translate('logout'),
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             color: AppColors.error,

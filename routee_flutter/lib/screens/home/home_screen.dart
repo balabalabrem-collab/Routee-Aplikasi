@@ -787,16 +787,23 @@ class _TransportCta extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('🚗', style: TextStyle(fontSize: 36)),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(language.translateText(id: 'Butuh Transportasi?', en: 'Need Transportation?'), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(
+                  language.translateText(id: 'Butuh Transportasi?', en: 'Need Transportation?'),
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
                 const SizedBox(height: 4),
-                Text(language.translateText(id: 'Sewa motor atau mobil + driver berpengalaman', en: 'Rent a motorbike or car + experienced driver'), style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
-                const SizedBox(height: 10),
+                Text(
+                  language.translateText(
+                    id: 'Sewa motor atau mobil + driver berpengalaman untuk perjalanan nyaman.',
+                    en: 'Rent a motorbike or car + experienced driver for a comfortable journey.',
+                  ),
+                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4),
+                ),
+                const SizedBox(height: 12),
                 Bounceable(
                   onTap: () => context.go('/rental'),
                   child: Container(
@@ -805,11 +812,24 @@ class _TransportCta extends StatelessWidget {
                       color: AppColors.accent,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(language.translateText(id: 'Lihat Kendaraan →', en: 'View Vehicles →'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    child: Text(
+                      language.translateText(id: 'Lihat Kendaraan →', en: 'View Vehicles →'),
+                      style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+            ),
+            child: const Text('🚗', style: TextStyle(fontSize: 32)),
           ),
         ],
       ),
