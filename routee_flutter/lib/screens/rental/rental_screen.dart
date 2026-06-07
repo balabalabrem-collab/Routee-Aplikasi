@@ -656,6 +656,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Titik Keberangkatan', en: 'Departure Point'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekStart,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.train_rounded, color: AppColors.primary),
@@ -672,6 +673,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Destinasi Utama (Wajib)', en: 'Main Destination (Required)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekDest1,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.place_rounded, color: AppColors.primary),
@@ -692,6 +694,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Destinasi Kedua (Wajib)', en: 'Second Destination (Required)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekDest2,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.place_rounded, color: AppColors.primary),
@@ -712,6 +715,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Destinasi Ketiga (Opsional)', en: 'Third Destination (Optional)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekDest3,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.add_location_rounded, color: AppColors.primary),
@@ -735,6 +739,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Destinasi Keempat (Opsional)', en: 'Fourth Destination (Optional)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekDest4,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.add_location_rounded, color: AppColors.primary),
@@ -753,6 +758,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Estimasi Waktu Penjemputan', en: 'Estimated Pickup Time'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _ojekTime,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.schedule_rounded, color: AppColors.primary),
@@ -769,6 +775,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Text(language.translateText(id: 'Durasi Perjalanan / Sewa Ojek', en: 'Trip Duration / Ojek Rental'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
+                isExpanded: true,
                 value: _ojekHours,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.av_timer_rounded, color: AppColors.primary),
