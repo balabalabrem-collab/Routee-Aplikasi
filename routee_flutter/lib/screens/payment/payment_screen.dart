@@ -350,27 +350,6 @@ class _SummaryStep extends StatelessWidget {
             const SizedBox(height: 20),
           ],
 
-          // Price breakdown
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.accentSurface, borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                if (rental.isOjek) ...[
-                  _InfoRow(label: 'Penyewaan Kendaraan (Motor)', value: formatter(15000)),
-                  const SizedBox(height: 8),
-                  _InfoRow(label: 'Jasa Driver & BBM', value: formatter(rental.rentalPrice - 15000)),
-                ] else ...[
-                  _InfoRow(label: 'Harga sewa (${rental.durationHours} jam)', value: formatter(rental.rentalPrice)),
-                ],
-                const SizedBox(height: 8),
-                _InfoRow(label: 'Biaya layanan (10%)', value: formatter(rental.serviceFee)),
-                const Divider(color: AppColors.accent, height: 20),
-                _InfoRow(label: 'Total', value: formatter(rental.totalAmount), isBold: true),
-              ],
-            ),
-          ),
-
           // Trip Confirmation Info
           ...(() {
             final trip = context.watch<TripProvider>();
@@ -444,6 +423,29 @@ class _SummaryStep extends StatelessWidget {
               ),
             ];
           })(),
+
+          const SizedBox(height: 20),
+
+          // Price breakdown
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: AppColors.accentSurface, borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              children: [
+                if (rental.isOjek) ...[
+                  _InfoRow(label: 'Penyewaan Kendaraan (Motor)', value: formatter(15000)),
+                  const SizedBox(height: 8),
+                  _InfoRow(label: 'Jasa Driver & BBM', value: formatter(rental.rentalPrice - 15000)),
+                ] else ...[
+                  _InfoRow(label: 'Harga sewa (${rental.durationHours} jam)', value: formatter(rental.rentalPrice)),
+                ],
+                const SizedBox(height: 8),
+                _InfoRow(label: 'Biaya layanan (10%)', value: formatter(rental.serviceFee)),
+                const Divider(color: AppColors.accent, height: 20),
+                _InfoRow(label: 'Total', value: formatter(rental.totalAmount), isBold: true),
+              ],
+            ),
+          ),
         ],
       ),
     );

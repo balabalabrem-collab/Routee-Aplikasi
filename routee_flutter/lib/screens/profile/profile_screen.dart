@@ -696,43 +696,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         statusColor: AppColors.primary,
                         icon: activePay.vehicleType == 'Motor' ? Icons.motorcycle_rounded : Icons.directions_car_rounded,
                       ),
-                      const SizedBox(height: 12),
+                    ] else ...[
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 60),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.history_rounded, size: 48, color: AppColors.textMuted),
+                              const SizedBox(height: 12),
+                              Text(
+                                context.read<LanguageProvider>().localeCode == 'en'
+                                    ? 'No transaction history'
+                                    : 'Belum ada riwayat transaksi',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
-
-                    // Mock past transaction 1
-                    _buildTransactionCard(
-                      title: 'Sewa Motor - Driver Budi',
-                      ref: 'RTR-9284102',
-                      date: '12 Mei 2026',
-                      amount: 'Rp 88.000',
-                      status: 'SUKSES',
-                      statusColor: AppColors.primaryLight,
-                      icon: Icons.motorcycle_rounded,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Mock past transaction 2
-                    _buildTransactionCard(
-                      title: 'Sewa Mobil - Driver Joko',
-                      ref: 'RTR-8172901',
-                      date: '28 April 2026',
-                      amount: 'Rp 352.000',
-                      status: 'SUKSES',
-                      statusColor: AppColors.primaryLight,
-                      icon: Icons.directions_car_rounded,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Mock past transaction 3
-                    _buildTransactionCard(
-                      title: 'Sewa Motor - Driver Agus',
-                      ref: 'RTR-7162981',
-                      date: '15 Maret 2026',
-                      amount: 'Rp 88.000',
-                      status: 'BATAL',
-                      statusColor: AppColors.error,
-                      icon: Icons.motorcycle_rounded,
-                    ),
                   ],
                 ),
               ),

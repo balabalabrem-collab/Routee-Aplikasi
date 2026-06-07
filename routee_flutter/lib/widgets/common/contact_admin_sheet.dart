@@ -17,15 +17,19 @@ class ContactAdminSheet extends StatelessWidget {
 
   Future<void> _openWhatsApp() async {
     final url = Uri.parse('https://wa.me/${AppStrings.adminWhatsApp.replaceAll('+', '')}?text=Halo%20Admin%20Routee,%20saya%20butuh%20bantuan.');
-    if (await canLaunchUrl(url)) {
+    try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Error launching WhatsApp: $e');
     }
   }
 
   Future<void> _openInstagram() async {
     final url = Uri.parse('https://www.instagram.com/${AppStrings.adminInstagram}');
-    if (await canLaunchUrl(url)) {
+    try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Error launching Instagram: $e');
     }
   }
 

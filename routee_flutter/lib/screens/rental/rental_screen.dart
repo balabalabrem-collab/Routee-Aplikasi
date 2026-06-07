@@ -472,24 +472,20 @@ class _RentalScreenState extends State<RentalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        price,
-                        style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary),
-                      ),
-                    ),
-                  ],
-                ),
+                Text(title, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    price,
+                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(
                   desc,
                   style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
@@ -589,8 +585,8 @@ class _RentalScreenState extends State<RentalScreen> {
       vehiclePrice = 50000;
     }
 
-    // Calculate BBM: 10 Liters = 10k = 50km -> 200 per km
-    final int bbmPrice = (totalKm * 200).round();
+    // Calculate BBM: 20k = 10 Liters = 10km -> 2000 per km
+    final int bbmPrice = (totalKm * 2000).round();
     const int jasaDriverPrice = 15000; // Flat driver service fee
     final int driverPrice = bbmPrice + jasaDriverPrice;
     final int basePrice = vehiclePrice + driverPrice;
@@ -837,9 +833,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 8),
               _buildPriceRow(language.translateText(id: 'Penyewaan Kendaraan', en: 'Vehicle Rental') + ' ($_ojekHours ' + language.translateText(id: 'Jam', en: 'Hours') + ')', _formatRp(vehiclePrice)),
               const SizedBox(height: 6),
-              _buildPriceRow(language.translateText(id: 'Bahan Bakar Minyak (BBM)', en: 'Fuel (BBM)') + ' (~${totalKm.toStringAsFixed(1)} km)', _formatRp(bbmPrice)),
-              const SizedBox(height: 6),
-              _buildPriceRow(language.translateText(id: 'Jasa Driver (Layanan Flat)', en: 'Driver Service (Flat Service)'), _formatRp(jasaDriverPrice)),
+              _buildPriceRow(language.translateText(id: 'Jasa Driver & BBM', en: 'Driver Service & Fuel'), _formatRp(driverPrice)),
               const Divider(color: AppColors.accent, height: 20),
               _buildPriceRow(language.translateText(id: 'Total Biaya', en: 'Total Price'), _formatRp(basePrice), isBold: true),
             ],
