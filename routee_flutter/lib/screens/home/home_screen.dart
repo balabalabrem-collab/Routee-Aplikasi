@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/data/destinations_data.dart';
 import '../../core/data/culinary_data.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/destination_card.dart';
 import '../../widgets/culinary_card.dart';
 import '../../widgets/common/bounceable.dart';
+import '../../widgets/common/contact_admin_sheet.dart';
+
+import '../../providers/home_scroll_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,10 +21,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final featured = DestinationsData.destinations.take(6).toList();
     final featuredCulinary = CulinaryData.culinary.take(4).toList();
+    final homeScroll = context.watch<HomeScrollProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
+        controller: homeScroll.scrollController,
         slivers: [
           // ─── HERO SECTION ─────────────────────────────
           SliverToBoxAdapter(child: _HeroSection()),
@@ -88,6 +96,12 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
+          // ─── SEWA TRANSPORTASI CTA ─────────────────────
+          SliverToBoxAdapter(child: _TransportCta()),
+
+          // ─── HUBUNGI KAMI ──────────────────────────────
+          SliverToBoxAdapter(child: _ContactSection()),
+
           // ─── CTA BANNER ───────────────────────────────
           SliverToBoxAdapter(child: _CtaBanner()),
 
@@ -127,7 +141,7 @@ class _HeroSection extends StatelessWidget {
                     width: 44,
                     height: 44,
                     child: Image.asset(
-                      'assets/images/logo_baru.png',
+                      'assets/images/logo v2.png',
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
                       errorBuilder: (c, e, s) {
@@ -191,6 +205,63 @@ class _HeroSection extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) {
+                      final isLoggedIn = auth.isLoggedIn;
+                      final user = auth.currentUser;
+                      final nameInitial = isLoggedIn && user != null && user.name.isNotEmpty
+                          ? user.name[0].toUpperCase()
+                          : '?';
+
+                      return GestureDetector(
+                        onTap: () => context.push('/profile'),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            gradient: isLoggedIn
+                                ? const LinearGradient(
+                                    colors: [AppColors.accent, Colors.orange],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  )
+                                : null,
+                            color: isLoggedIn ? null : Colors.white24,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isLoggedIn ? AppColors.accent : Colors.white54,
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              if (isLoggedIn)
+                                BoxShadow(
+                                  color: AppColors.accent.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                            ],
+                          ),
+                          child: Center(
+                            child: isLoggedIn
+                                ? Text(
+                                    nameInitial,
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.primaryDark,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
 
@@ -224,6 +295,28 @@ class _HeroSection extends StatelessWidget {
                   color: Colors.white.withOpacity(0.75),
                   fontSize: 13,
                   height: 1.6,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Slogan
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                ),
+                child: Text(
+                  '"${AppStrings.slogan}"',
+                  style: GoogleFonts.poppins(
+                    color: AppColors.accentLight,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    fontStyle: FontStyle.italic,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
 
@@ -633,6 +726,128 @@ class _CtaBanner extends StatelessWidget {
                       side: const BorderSide(color: Colors.white54),
                     ),
                     child: const Text('Explore Dulu'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TRANSPORT CTA
+// ═══════════════════════════════════════════════════════
+class _TransportCta extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A3219), Color(0xFF6D4C2A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 16, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Text('🚗', style: TextStyle(fontSize: 36)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Butuh Transportasi?', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                const SizedBox(height: 4),
+                Text('Sewa motor atau mobil + driver berpengalaman', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
+                const SizedBox(height: 10),
+                Bounceable(
+                  onTap: () => context.go('/rental'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text('Lihat Kendaraan →', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// CONTACT SECTION
+// ═══════════════════════════════════════════════════════
+class _ContactSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Hubungi Kami', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
+          const SizedBox(height: 4),
+          Text('Butuh Bantuan?', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          Text('Tim admin siap membantu melalui WhatsApp atau Instagram', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Bounceable(
+                  onTap: () => ContactAdminSheet.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF25D366).withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 18),
+                        const SizedBox(width: 8),
+                        Text('WhatsApp', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF25D366))),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Bounceable(
+                  onTap: () => ContactAdminSheet.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE1306C).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE1306C).withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.camera_alt_rounded, color: Color(0xFFE1306C), size: 18),
+                        const SizedBox(width: 8),
+                        Text('Instagram', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFFE1306C))),
+                      ],
+                    ),
                   ),
                 ),
               ),

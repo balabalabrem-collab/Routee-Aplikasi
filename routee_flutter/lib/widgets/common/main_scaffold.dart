@@ -1,27 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../providers/language_provider.dart';
+import '../../providers/home_scroll_provider.dart';
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends StatefulWidget {
   final Widget child;
   const MainScaffold({super.key, required this.child});
+
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  final List<int> _navHistory = [0];
 
   int _locationToIndex(String location) {
     if (location.startsWith('/explore')) return 1;
     if (location.startsWith('/trip')) return 2;
     if (location.startsWith('/map')) return 3;
-    if (location.startsWith('/umkm')) return 4;
+    if (location.startsWith('/rental')) return 4;
     return 0;
   }
 
   void _onNavTap(BuildContext context, int index) {
+    if (index == 0 && _locationToIndex(GoRouterState.of(context).uri.toString()) == 0) {
+      Provider.of<HomeScrollProvider>(context, listen: false).scrollToTop();
+    }
+    if (_navHistory.isEmpty || _navHistory.last != index) {
+      _navHistory.remove(index);
+      _navHistory.add(index);
+    }
+    _navigate(context, index);
+  }
+
+  void _navigate(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/'); break;
-      case 1: context.go('/explore'); break;
-      case 2: context.go('/trip'); break;
-      case 3: context.go('/map'); break;
-      case 4: context.go('/umkm'); break;
+      case 0:
+        context.go('/');
+        break;
+      case 1:
+        context.go('/explore');
+        break;
+      case 2:
+        context.go('/trip');
+        break;
+      case 3:
+        context.go('/map');
+        break;
+      case 4:
+        context.go('/rental');
+        break;
     }
   }
 
@@ -30,30 +62,78 @@ class MainScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
     final currentIndex = _locationToIndex(location);
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 64,
-            child: Row(
-              children: [
-                _NavItem(icon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: currentIndex, onTap: (i) => _onNavTap(context, i)),
-                _NavItem(icon: Icons.explore_rounded, label: 'Explore', index: 1, currentIndex: currentIndex, onTap: (i) => _onNavTap(context, i)),
-                _TripNavItem(isActive: currentIndex == 2, onTap: () => _onNavTap(context, 2)),
-                _NavItem(icon: Icons.map_rounded, label: 'Peta', index: 3, currentIndex: currentIndex, onTap: (i) => _onNavTap(context, i)),
-                _NavItem(icon: Icons.storefront_rounded, label: 'UMKM', index: 4, currentIndex: currentIndex, onTap: (i) => _onNavTap(context, i)),
-              ],
+    if (_navHistory.isEmpty || _navHistory.last != currentIndex) {
+      _navHistory.remove(currentIndex);
+      _navHistory.add(currentIndex);
+    }
+
+    final language = context.watch<LanguageProvider>();
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_navHistory.length > 1) {
+          setState(() {
+            _navHistory.removeLast();
+            final prevIndex = _navHistory.last;
+            _navigate(context, prevIndex);
+          });
+        } else if (_navHistory.length == 1 && _navHistory.first != 0) {
+          setState(() {
+            _navHistory.clear();
+            _navHistory.add(0);
+            _navigate(context, 0);
+          });
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: widget.child,
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: SizedBox(
+              height: 64,
+              child: Row(
+                children: [
+                  _NavItem(
+                      icon: Icons.home_rounded,
+                      label: language.translate('home'),
+                      index: 0,
+                      currentIndex: currentIndex,
+                      onTap: (i) => _onNavTap(context, i)),
+                  _NavItem(
+                      icon: Icons.explore_rounded,
+                      label: language.translate('explore'),
+                      index: 1,
+                      currentIndex: currentIndex,
+                      onTap: (i) => _onNavTap(context, i)),
+                  _TripNavItem(isActive: currentIndex == 2, onTap: () => _onNavTap(context, 2)),
+                  _NavItem(
+                      icon: Icons.map_rounded,
+                      label: language.translate('map'),
+                      index: 3,
+                      currentIndex: currentIndex,
+                      onTap: (i) => _onNavTap(context, i)),
+                  _NavItem(
+                      icon: Icons.car_rental_rounded,
+                      label: language.translate('rental'),
+                      index: 4,
+                      currentIndex: currentIndex,
+                      onTap: (i) => _onNavTap(context, i)),
+                ],
+              ),
             ),
           ),
         ),
@@ -70,8 +150,11 @@ class _NavItem extends StatelessWidget {
   final Function(int) onTap;
 
   const _NavItem({
-    required this.icon, required this.label, required this.index,
-    required this.currentIndex, required this.onTap,
+    required this.icon,
+    required this.label,
+    required this.index,
+    required this.currentIndex,
+    required this.onTap,
   });
 
   @override

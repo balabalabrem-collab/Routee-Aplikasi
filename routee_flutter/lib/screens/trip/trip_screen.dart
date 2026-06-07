@@ -9,24 +9,26 @@ import '../../core/models/itinerary_model.dart';
 import '../../providers/trip_provider.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/common/bounceable.dart';
+import '../../providers/language_provider.dart';
 
 class TripScreen extends StatelessWidget {
   const TripScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // App bar
-          const SliverAppBar(
+          SliverAppBar(
             pinned: true,
             backgroundColor: AppColors.primary,
             expandedHeight: 95,
             flexibleSpace: _CollapsingAppbarSpace(
-              title: 'Trip Planner',
-              subtitle: 'Buat itinerary 1-hari terbaikmu',
+              title: language.translate('trip_planner'),
+              subtitle: language.translate('trip_subtitle'),
               expandedHeight: 95,
             ),
           ),
@@ -436,6 +438,7 @@ class _ItineraryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -477,14 +480,14 @@ class _ItineraryView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('💰 Estimasi Total', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    Text('💰 ' + (language.localeCode == 'en' ? 'Estimated Total' : 'Estimasi Total'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                     Text(_formatRp(itinerary.totalCost), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.accent)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                _CostRow('🎟 Tiket', _formatRp(itinerary.totalTicket)),
-                _CostRow('🍜 Makan & Minum', _formatRp(itinerary.totalFood)),
-                _CostRow('🛵 Transportasi', '~ ${_formatRp(itinerary.totalTransport)}'),
+                _CostRow('🎟 ' + language.translate('ticket'), _formatRp(itinerary.totalTicket)),
+                _CostRow('🍜 ' + (language.localeCode == 'en' ? 'Food & Drinks' : 'Makan & Minum'), _formatRp(itinerary.totalFood)),
+                _CostRow('🛵 ' + (language.localeCode == 'en' ? 'Transportation' : 'Transportasi'), '~ ${_formatRp(itinerary.totalTransport)}'),
               ],
             ),
           ),
@@ -502,7 +505,7 @@ class _ItineraryView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('🚌 Opsi Transportasi dari ${itinerary.terminalName}',
+                Text(language.localeCode == 'en' ? '🚌 Transport Options from ${itinerary.terminalName}' : '🚌 Opsi Transportasi dari ${itinerary.terminalName}',
                   style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                 const SizedBox(height: 6),
                 ...itinerary.transport.map((t) => Padding(
@@ -520,7 +523,7 @@ class _ItineraryView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Timeline
-          Text('🗓 Jadwal Perjalanan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Text('🗓 ' + (language.localeCode == 'en' ? 'Travel Schedule' : 'Jadwal Perjalanan'), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
 
           // Spots + Lunch
@@ -534,11 +537,20 @@ class _ItineraryView extends StatelessWidget {
                 isLast: false,
               ));
 
+              // Insert transit step if there's a next spot
+              if (i < itinerary.spots.length - 1) {
+                items.add(_TransitStep(
+                  distance: itinerary.spots[i + 1].distance,
+                  nextSpotName: itinerary.spots[i + 1].name,
+                ));
+              }
+
               // Insert lunch break after spot 2
               if (i == 1) {
                 items.add(_LunchBreak(food: itinerary.food, formatRp: _formatRp));
               }
             }
+
             items.add(_TripEnd(spotCount: itinerary.spots.length));
             return items;
           })(),
@@ -548,8 +560,40 @@ class _ItineraryView extends StatelessWidget {
           // ── START NAVIGATION BUTTON ──────────────────────
           Bounceable(
             onTap: () {
-              context.read<TripProvider>().startNavigation();
-              context.go('/map?mode=navigate');
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: Row(
+                    children: [
+                      const Icon(Icons.directions_car_rounded, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text('Butuh Transportasi?', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  content: Text(
+                    'Apakah Anda akan menggunakan Sewa Kendaraan atau Ojek RO-JEK?',
+                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        context.read<TripProvider>().startNavigation();
+                        context.go('/map?mode=navigate');
+                      },
+                      child: Text('Tidak, Lewati', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        context.go('/rental');
+                      },
+                      child: Text('Ya, Sewa/Ojek', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              );
             },
             child: Container(
               width: double.infinity,
@@ -571,7 +615,7 @@ class _ItineraryView extends StatelessWidget {
                   const Icon(Icons.navigation_rounded, color: Colors.white, size: 20),
                   const SizedBox(width: 10),
                   Text(
-                    'Mulai Perjalanan di Peta',
+                    language.translate('start_journey_map'),
                     style: GoogleFonts.poppins(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -590,7 +634,7 @@ class _ItineraryView extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => context.read<TripProvider>().resetItinerary(),
               icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Buat Itinerary Baru'),
+              label: Text(language.localeCode == 'en' ? 'Create New Itinerary' : 'Buat Itinerary Baru'),
               style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
             ),
           ),
@@ -1277,3 +1321,133 @@ class _DestinationPickerSheetState extends State<_DestinationPickerSheet> {
     );
   }
 }
+
+class _TransitStep extends StatelessWidget {
+  final String distance;
+  final String nextSpotName;
+
+  const _TransitStep({
+    required this.distance,
+    required this.nextSpotName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    double distKm = 2.0;
+    final match = RegExp(r'^([\d\.]+)').firstMatch(distance);
+    if (match != null) {
+      distKm = double.tryParse(match.group(1) ?? '') ?? 2.0;
+    }
+
+    final int motorMin = (distKm * 3).round().clamp(2, 60);
+    final int carMin = (distKm * 5).round().clamp(3, 90);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Time offset
+          const SizedBox(width: 60),
+          // Vertical line segment matching timeline dots
+          Column(
+            children: [
+              Container(width: 2, height: 75, color: AppColors.primarySurface),
+            ],
+          ),
+          const SizedBox(width: 18),
+          // Content Card
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 4, right: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.navigation_outlined, size: 12, color: AppColors.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Ke $nextSpotName ($distance)',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.motorcycle, size: 12, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                '~$motorMin mnt',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.directions_car, size: 12, color: AppColors.accent),
+                              const SizedBox(width: 4),
+                              Text(
+                                '~$carMin mnt',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

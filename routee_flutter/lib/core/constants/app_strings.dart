@@ -4,6 +4,11 @@ class AppStrings {
   static const String appName = 'Routee';
   static const String tagline = 'Jelajahi Surabaya dalam 1 hari';
   static const String subTagline = 'Temukan hidden gems, situs heritage, dan kuliner legendaris Surabaya';
+  static const String slogan = 'One Day, One Ride, Full Experience';
+
+  // Admin Contact
+  static const String adminWhatsApp = '+62881026323156';
+  static const String adminInstagram = 'd.mily___?igsh=MTcxeTBtODR3dWZk';
 
   // Nav
   static const String navHome = 'Home';

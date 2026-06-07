@@ -5,6 +5,11 @@ import 'app.dart';
 import 'providers/trip_provider.dart';
 import 'providers/explore_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/rental_provider.dart';
+import 'providers/bookmark_provider.dart';
+import 'providers/language_provider.dart';
+import 'providers/home_scroll_provider.dart';
 import 'core/services/notification_service.dart';
 
 void main() async {
@@ -25,6 +30,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) => TripProvider()),
         ChangeNotifierProvider(create: (_) => ExploreProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => RentalProvider()),
+        ChangeNotifierProvider(create: (_) => BookmarkProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider(create: (_) => HomeScrollProvider()),
       ],
       child: const RouteeApp(),
     ),

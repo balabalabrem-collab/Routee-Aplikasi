@@ -2,11 +2,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/data/destinations_data.dart';
 import '../../core/data/culinary_data.dart';
 import '../../core/models/destination_model.dart';
 import '../../widgets/common/bounceable.dart';
+import '../../providers/bookmark_provider.dart';
+import '../../providers/language_provider.dart';
 
 class DetailScreen extends StatefulWidget {
   final String id;
@@ -27,6 +30,10 @@ class _DetailScreenState extends State<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
+    final bookmark = context.watch<BookmarkProvider>();
+    final isSaved = bookmark.isSaved(widget.id);
+
     DestinationModel? dest = DestinationsData.findById(widget.id);
     if (dest == null) {
       try {
@@ -55,9 +62,20 @@ class _DetailScreenState extends State<DetailScreen> {
     Color catBg, catFg;
     String catIcon;
     switch (destination.category) {
-      case 'Heritage': catBg = AppColors.heritageBg; catFg = AppColors.heritageFg; catIcon = '🏛'; break;
-      case 'Religi': catBg = AppColors.religiBg; catFg = AppColors.religiFg; catIcon = '🕌'; break;
-      default: catBg = AppColors.culinaryBg; catFg = AppColors.culinaryFg; catIcon = '🍜';
+      case 'Heritage':
+        catBg = AppColors.heritageBg;
+        catFg = AppColors.heritageFg;
+        catIcon = '🏛';
+        break;
+      case 'Religi':
+        catBg = AppColors.religiBg;
+        catFg = AppColors.religiFg;
+        catIcon = '🕌';
+        break;
+      default:
+        catBg = AppColors.culinaryBg;
+        catFg = AppColors.culinaryFg;
+        catIcon = '🍜';
     }
 
     return Scaffold(
@@ -125,7 +143,9 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ),
                   Positioned(
-                    bottom: 16, left: 20, right: 20,
+                    bottom: 16,
+                    left: 20,
+                    right: 20,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -135,12 +155,18 @@ class _DetailScreenState extends State<DetailScreen> {
                             color: catBg.withOpacity(0.9),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text('$catIcon ${destination.category}', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: catFg)),
+                          child: Text('$catIcon ${destination.category}',
+                              style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: catFg)),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           destination.name,
                           style: GoogleFonts.poppins(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '📷 Sumber: ${destination.imageSource}',
+                          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.w400),
                         ),
                       ],
                     ),
@@ -172,7 +198,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             const Icon(Icons.star_rounded, size: 16, color: AppColors.accent),
                             const SizedBox(width: 4),
                             Text(
-                              '${destination.rating} (Rating Pengunjung)',
+                              '${destination.rating} (${language.translate('visitor_rating')})',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -183,12 +209,41 @@ class _DetailScreenState extends State<DetailScreen> {
                         ),
                       ),
                       const Spacer(),
+                      // Save/Bookmark Button
+                      Bounceable(
+                        onTap: () {
+                          bookmark.toggleSaveDestination(destination.id);
+                          final msg = bookmark.isSaved(destination.id)
+                              ? (language.localeCode == 'en' ? 'Saved to bookmarks' : 'Destinasi berhasil disimpan')
+                              : (language.localeCode == 'en' ? 'Removed from bookmarks' : 'Destinasi dihapus dari simpanan');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(msg),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isSaved ? AppColors.accentSurface : AppColors.primarySurface,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                            color: isSaved ? AppColors.accent : AppColors.primary,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Share Button
                       Bounceable(
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Tautan berhasil disalin!'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(language.translate('share_copied')),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                         },
@@ -209,24 +264,56 @@ class _DetailScreenState extends State<DetailScreen> {
                   // Info cards
                   Row(
                     children: [
-                      Expanded(child: _InfoCard(icon: Icons.schedule_rounded, label: 'Jam Buka', value: destination.hours, color: AppColors.primary)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.schedule_rounded,
+                          label: language.translate('opening_hours'),
+                          value: destination.hours,
+                          color: AppColors.primary,
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _InfoCard(icon: Icons.local_activity_rounded, label: 'Tiket', value: destination.ticket, color: destination.ticket == 'Gratis' ? AppColors.success : AppColors.warning)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.local_activity_rounded,
+                          label: language.translate('ticket'),
+                          value: destination.ticket,
+                          color: destination.ticket.toLowerCase().contains('gratis')
+                              ? AppColors.success
+                              : AppColors.warning,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _InfoCard(icon: Icons.timer_rounded, label: 'Durasi', value: destination.duration, color: AppColors.accent)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.timer_rounded,
+                          label: language.translate('duration'),
+                          value: destination.duration,
+                          color: AppColors.accent,
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _InfoCard(icon: Icons.location_on_rounded, label: 'Lokasi', value: destination.location, color: AppColors.error, isLong: true)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.location_on_rounded,
+                          label: language.translate('location'),
+                          value: destination.location,
+                          color: AppColors.error,
+                          isLong: true,
+                        ),
+                      ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
 
                   // Description
-                  Text('Tentang Destinasi', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  Text(language.translate('about_dest'),
+                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
                   Text(
                     destination.description,
@@ -239,11 +326,13 @@ class _DetailScreenState extends State<DetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: Bounceable(
-                      onTap: () => context.go('/trip'),
+                      onTap: () {
+                        context.go('/trip');
+                      },
                       child: ElevatedButton.icon(
                         onPressed: () {},
                         icon: const Icon(Icons.route_rounded),
-                        label: const Text('Tambahkan ke Trip Planner'),
+                        label: Text(language.translate('add_to_trip')),
                       ),
                     ),
                   ),
@@ -251,11 +340,13 @@ class _DetailScreenState extends State<DetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: Bounceable(
-                      onTap: () => context.go('/map'),
+                      onTap: () {
+                        context.go('/map');
+                      },
                       child: OutlinedButton.icon(
                         onPressed: () {},
                         icon: const Icon(Icons.map_rounded),
-                        label: const Text('Lihat di Peta'),
+                        label: Text(language.translate('view_on_map')),
                       ),
                     ),
                   ),
@@ -279,8 +370,11 @@ class _InfoCard extends StatelessWidget {
   final bool isLong;
 
   const _InfoCard({
-    required this.icon, required this.label,
-    required this.value, required this.color, this.isLong = false,
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    this.isLong = false,
   });
 
   @override

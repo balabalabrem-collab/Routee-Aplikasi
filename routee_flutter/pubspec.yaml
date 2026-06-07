@@ -35,6 +35,7 @@ dependencies:
   geolocator: ^13.0.2
   flutter_local_notifications: ^18.0.1
   http: ^1.2.0
+  shared_preferences: ^2.2.3
 
   cupertino_icons: ^1.0.8
 

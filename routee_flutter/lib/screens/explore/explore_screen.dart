@@ -9,6 +9,9 @@ import '../../core/models/destination_model.dart';
 import '../../providers/explore_provider.dart';
 import '../../widgets/common/bounceable.dart';
 
+import '../../core/data/umkm_data.dart';
+import '../../core/models/umkm_model.dart';
+
 class ExploreScreen extends StatefulWidget {
   final String? initialCategory;
   const ExploreScreen({super.key, this.initialCategory});
@@ -25,6 +28,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
     {'label': '🏛  Heritage', 'key': 'Heritage'},
     {'label': '🕌  Religi', 'key': 'Religi'},
     {'label': '🍜  Kuliner', 'key': 'Kuliner'},
+    {'label': '🛍️  UMKM', 'key': 'UMKM'},
   ];
 
   @override
@@ -39,7 +43,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
       }
     }
 
-    _tabController = TabController(length: 3, vsync: this, initialIndex: initialIndex);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: initialIndex);
 
     final initialTabKey = tabs[initialIndex]['key'] as String;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -130,6 +134,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                   _DestinationTabView(category: 'Heritage'),
                   _DestinationTabView(category: 'Religi'),
                   _CulinaryTabView(),
+                  _UmkmTabView(),
                 ],
               ),
             ),
@@ -568,6 +573,179 @@ class _CollapsingExploreAppbarSpace extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _UmkmTabView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ExploreProvider>(
+      builder: (ctx, provider, _) {
+        final filters = [
+          {'key': 'all', 'label': '🏪 Semua'},
+          {'key': 'fashion', 'label': '👗 Fashion'},
+          {'key': 'food', 'label': '🍜 Makanan'},
+          {'key': 'craft', 'label': '🎨 Kerajinan'},
+        ];
+
+        final filtered = provider.umkmFilter == 'all'
+            ? UmkmData.products
+            : UmkmData.products.where((p) => p.category == provider.umkmFilter).toList();
+
+        return Column(
+          children: [
+            // Filter chips
+            SizedBox(
+              height: 56,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                children: filters.map((f) {
+                  final isSelected = provider.umkmFilter == f['key'];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Bounceable(
+                      onTap: () => provider.setUmkmFilter(f['key']!),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.umkmFg : AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: isSelected ? AppColors.umkmFg : AppColors.divider),
+                        ),
+                        child: Center(
+                          child: Text(
+                            f['label']!,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12, fontWeight: FontWeight.w600,
+                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            // Grid content
+            Expanded(
+              child: filtered.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('📦', style: TextStyle(fontSize: 48)),
+                          const SizedBox(height: 8),
+                          Text('Tidak ada produk di kategori ini', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.95,
+                      ),
+                      itemCount: filtered.length,
+                      itemBuilder: (ctx, i) => _UmkmGridCard(product: filtered[i]),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _UmkmGridCard extends StatelessWidget {
+  final UmkmModel product;
+  const _UmkmGridCard({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    String catLabel;
+    Color catBg, catFg;
+    switch (product.category) {
+      case 'fashion': catLabel = '👗 Fashion'; catBg = AppColors.primarySurface; catFg = AppColors.primaryDark; break;
+      case 'food': catLabel = '🍜 Makanan'; catBg = AppColors.primarySurface; catFg = AppColors.primaryDark; break;
+      default: catLabel = '🎨 Kerajinan'; catBg = AppColors.umkmBg; catFg = AppColors.umkmFg;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  product.image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (c, e, s) => Container(color: AppColors.surfaceVariant, child: const Icon(Icons.image_rounded, size: 32, color: AppColors.textMuted)),
+                ),
+                // Gradient overlay
+                Container(
+                  decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+                ),
+                // Category badge
+                Positioned(
+                  top: 8, right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(color: catBg.withOpacity(0.92), borderRadius: BorderRadius.circular(6)),
+                    child: Text(catLabel, style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.w700, color: catFg)),
+                  ),
+                ),
+                // Rating
+                Positioned(
+                  bottom: 8, right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
+                    child: Text('★ ${product.rating}', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.accentLight)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Info
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(product.seller, style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text(product.name, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(product.price, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -208,7 +208,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   width: 120,
                                   height: 120,
                                   child: Image.asset(
-                                    'assets/images/logo_baru.png',
+                                    'assets/images/logo v2.png',
                                     fit: BoxFit.contain,
                                     filterQuality: FilterQuality.high,
                                     errorBuilder: (c, e, s) => Container(
@@ -265,6 +265,20 @@ class _SplashScreenState extends State<SplashScreen>
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                       letterSpacing: 2,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Opacity(
+                                  opacity: _taglineOpacity.value,
+                                  child: Text(
+                                    'One Day, One Ride, Full Experience',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w400,
+                                      fontStyle: FontStyle.italic,
+                                      letterSpacing: 1,
                                     ),
                                   ),
                                 ),

@@ -13,6 +13,7 @@ import '../../core/models/destination_model.dart';
 import '../../core/models/itinerary_model.dart';
 import '../../providers/trip_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../providers/bookmark_provider.dart';
 import '../../widgets/common/bounceable.dart';
 
 // ─── Map Mode ──────────────────────────────────────────
@@ -87,6 +88,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       final idx = tripProvider.currentItinerary?.spots.indexOf(arrivedSpot) ?? -1;
       if (idx >= 0) {
         tripProvider.markSpotVisited(idx);
+        if (mounted) {
+          context.read<BookmarkProvider>().markAsVisited(arrivedSpot.id);
+        }
       }
       // Reset alerts for next spot
       navProvider.resetAlerts();
@@ -897,6 +901,34 @@ class _NavigateBottomPanel extends StatelessWidget {
                                     const Icon(Icons.hourglass_bottom_rounded, size: 11, color: AppColors.textMuted),
                                     const SizedBox(width: 3),
                                     Text(activeSpot.duration, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textMuted)),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Bounceable(
+                                      onTap: () {
+                                        tripProvider.markSpotVisited(activeIndex);
+                                        context.read<BookmarkProvider>().markAsVisited(activeSpot.id);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Selesai mengunjungi ${activeSpot.name}!'),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          'Tandai Selesai',
+                                          style: GoogleFonts.poppins(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],

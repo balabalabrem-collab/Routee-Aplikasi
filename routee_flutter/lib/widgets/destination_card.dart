@@ -69,6 +69,21 @@ class DestinationCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Image source
+                  Positioned(
+                    bottom: 4, right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '📷 ${destination.imageSource}',
+                        style: GoogleFonts.poppins(color: Colors.white60, fontSize: 7, fontWeight: FontWeight.w400),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

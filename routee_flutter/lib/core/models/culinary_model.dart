@@ -9,6 +9,7 @@ class CulinaryModel {
   final String desc;
   final String area;
   final String group;
+  final String imageSource;
 
   const CulinaryModel({
     required this.id,
@@ -21,5 +22,6 @@ class CulinaryModel {
     required this.desc,
     required this.area,
     required this.group,
+    this.imageSource = 'Google Images',
   });
 }

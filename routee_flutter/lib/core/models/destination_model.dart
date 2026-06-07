@@ -12,6 +12,7 @@ class DestinationModel {
   final double rating;
   final double lat;
   final double lng;
+  final String imageSource;
 
   const DestinationModel({
     required this.id,
@@ -27,5 +28,6 @@ class DestinationModel {
     required this.rating,
     required this.lat,
     required this.lng,
+    this.imageSource = 'Google Images',
   });
 }

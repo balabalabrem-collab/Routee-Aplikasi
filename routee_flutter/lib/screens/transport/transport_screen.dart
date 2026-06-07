@@ -1,219 +1,400 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/data/transport_data.dart';
-import '../../core/models/transport_model.dart';
+import '../../core/data/driver_data.dart';
+import '../../core/models/driver_model.dart';
+import '../../providers/rental_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/common/contact_admin_sheet.dart';
+import '../../widgets/common/bounceable.dart';
 
-class TransportScreen extends StatelessWidget {
+class TransportScreen extends StatefulWidget {
   const TransportScreen({super.key});
 
   @override
+  State<TransportScreen> createState() => _TransportScreenState();
+}
+
+class _TransportScreenState extends State<TransportScreen> {
+  String _selectedType = 'Motor';
+
+  @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final drivers = DriverData.byVehicleType(_selectedType);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Pilihan Transportasi'),
+        title: const Text('Sewa Transportasi'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.headset_mic_rounded),
+            tooltip: 'Hubungi Admin',
+            onPressed: () => ContactAdminSheet.show(context),
+          ),
+        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: Column(
         children: [
-          // Header info
+          // Header banner
           Container(
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF6D4C2A), Color(0xFF4A3219)],
+                colors: [Color(0xFF3B2314), Color(0xFF6D4C2A), Color(0xFF8B6914)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('🚗', style: TextStyle(fontSize: 36)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Pilih Transportasi', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-                      const SizedBox(height: 2),
-                      Text('Pilihan kendaraan sesuai kebutuhan perjalanan heritage Surabaya', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    const Text('🚗', style: TextStyle(fontSize: 32)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Sewa Kendaraan', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                          Text('Pilih driver terbaik untuk perjalanan heritage-mu', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Price indicator / Selector Buttons combined
+                Row(
+                  children: [
+                    _PriceBadge(
+                      icon: '🛵',
+                      label: 'Motor',
+                      price: 'Rp 10.000/jam',
+                      isActive: _selectedType == 'Motor',
+                      onTap: () => setState(() => _selectedType = 'Motor'),
+                    ),
+                    const SizedBox(width: 10),
+                    _PriceBadge(
+                      icon: '🚗',
+                      label: 'Mobil',
+                      price: 'Rp 40.000/jam',
+                      isActive: _selectedType == 'Mobil',
+                      onTap: () => setState(() => _selectedType = 'Mobil'),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 4),
 
-          ...TransportData.options.map((t) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _TransportCard(transport: t),
-          )),
+          // Driver list
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              itemCount: drivers.length,
+              itemBuilder: (ctx, i) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _DriverCard(
+                  driver: drivers[i],
+                  isLoggedIn: auth.isLoggedIn,
+                  onBook: () => _handleBook(drivers[i], auth.isLoggedIn),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => ContactAdminSheet.show(context),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.chat, color: Colors.white),
+        label: Text('Bantuan', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+      ),    );
+  }
 
-          const SizedBox(height: 80),
+  void _handleBook(DriverModel driver, bool isLoggedIn) {
+    if (!isLoggedIn) {
+      _showLoginDialog();
+      return;
+    }
+
+    final rental = context.read<RentalProvider>();
+    rental.selectDriver(driver);
+    context.push('/payment');
+  }
+
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.lock_rounded, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text('Login Diperlukan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        content: Text(
+          'Kamu perlu login atau buat akun untuk menyewa transportasi.',
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Nanti', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.go('/login');
+            },
+            child: Text('Login', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+          ),
         ],
       ),
     );
   }
 }
+class _PriceBadge extends StatelessWidget {
+  final String icon;
+  final String label;
+  final String price;
+  final bool isActive;
+  final VoidCallback onTap;
 
-class _TransportCard extends StatefulWidget {
-  final TransportModel transport;
-  const _TransportCard({required this.transport});
-
-  @override
-  State<_TransportCard> createState() => _TransportCardState();
-}
-
-class _TransportCardState extends State<_TransportCard> {
-  bool _expanded = false;
-
-  Color _hexToColor(String hex) {
-    final clean = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$clean', radix: 16));
-  }
+  const _PriceBadge({
+    required this.icon,
+    required this.label,
+    required this.price,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = _hexToColor(widget.transport.colorHex);
+    return Expanded(
+      child: Bounceable(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white.withOpacity(0.2) : Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive ? AppColors.accent : Colors.white24,
+              width: isActive ? 2.0 : 1.0,
+            ),
+            boxShadow: [
+              if (isActive)
+                BoxShadow(
+                  color: AppColors.accent.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                )
+            ],
+          ),
+          child: Row(
+            children: [
+              Text(icon, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      price,
+                      style: GoogleFonts.poppins(
+                        fontSize: 9,
+                        color: isActive ? AppColors.accentLight : Colors.white70,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isActive)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.accent,
+                  size: 16,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
+class _DriverCard extends StatelessWidget {
+  final DriverModel driver;
+  final bool isLoggedIn;
+  final VoidCallback onBook;
+
+  const _DriverCard({required this.driver, required this.isLoggedIn, required this.onBook});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 12, offset: const Offset(0, 4))],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          // Main content
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      // Icon circle
-                      Container(
-                        width: 52, height: 52,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(widget.transport.icon, style: const TextStyle(fontSize: 24)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(widget.transport.name, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: color.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(widget.transport.badge, style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: color)),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.transport.price,
-                              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w800, color: color),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.textMuted,
-                      ),
-                    ],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // Driver avatar
+                Container(
+                  width: 56, height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.accent, width: 2),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  Text(widget.transport.desc, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary, height: 1.5)),
-                ],
-              ),
-            ),
-          ),
-
-          // Expandable pros/cons
-          if (_expanded)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                children: [
-                  const Divider(color: AppColors.divider),
-                  const SizedBox(height: 8),
-                  Row(
+                  child: const Center(child: Icon(Icons.person_rounded, size: 28, color: AppColors.primary)),
+                ),
+                const SizedBox(width: 14),
+                // Driver info
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('✅ Keunggulan', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.success)),
-                            const SizedBox(height: 6),
-                            ...widget.transport.pros.map((p) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.check_circle_rounded, size: 13, color: AppColors.success),
-                                  const SizedBox(width: 5),
-                                  Expanded(child: Text(p, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary))),
-                                ],
-                              ),
-                            )),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('⚠️ Keterbatasan', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.warning)),
-                            const SizedBox(height: 6),
-                            ...widget.transport.cons.map((c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(Icons.info_rounded, size: 13, color: AppColors.warning),
-                                  const SizedBox(width: 5),
-                                  Expanded(child: Text(c, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary))),
-                                ],
-                              ),
-                            )),
-                          ],
-                        ),
+                      Text(driver.name, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded, size: 14, color: AppColors.accent),
+                          const SizedBox(width: 2),
+                          Text('${driver.rating}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                          const SizedBox(width: 8),
+                          Text('•', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+                          const SizedBox(width: 8),
+                          Text('${driver.totalTrips} trips', style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                        ],
                       ),
                     ],
                   ),
+                ),
+                // Availability
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
+                      const SizedBox(width: 4),
+                      Text('Online', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.success)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            // Vehicle info
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  _VehicleInfoChip(icon: Icons.two_wheeler, label: driver.vehicleName),
+                  const SizedBox(width: 16),
+                  _VehicleInfoChip(icon: Icons.confirmation_number_outlined, label: driver.plateNumber),
                 ],
               ),
             ),
+
+            const SizedBox(height: 14),
+
+            // Book button
+            SizedBox(
+              width: double.infinity,
+              child: Bounceable(
+                onTap: onBook,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6D4C2A), Color(0xFF4A3219)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
+                    ],
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(isLoggedIn ? Icons.directions_car_rounded : Icons.lock_rounded, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          isLoggedIn ? 'Sewa Sekarang' : 'Login untuk Sewa',
+                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VehicleInfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _VehicleInfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.primary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(label, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary), overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../core/data/terminal_data.dart';
+import '../core/data/destinations_data.dart';
 import '../core/models/itinerary_model.dart';
 import '../core/models/terminal_model.dart';
 import '../core/models/destination_model.dart';
@@ -63,6 +64,11 @@ class TripProvider extends ChangeNotifier {
     _isCustomMode = value;
     _currentItinerary = null;
     _resetNavState();
+    notifyListeners();
+  }
+
+  void setItinerary(ItineraryModel itinerary) {
+    _currentItinerary = itinerary;
     notifyListeners();
   }
 
@@ -199,46 +205,87 @@ class TripProvider extends ChangeNotifier {
         transport: terminal.transport,
       );
     } else {
-      int spotCount = _selectedHours == 4 ? 2 : _selectedHours == 6 ? 3 : 4;
+      final int spotCount = _selectedHours == 4 ? 2 : _selectedHours == 6 ? 3 : 4;
 
-      final rawSpots = List<ItinerarySpot>.from(terminal.spots)..shuffle();
-      final selectedSpots = rawSpots.take(spotCount).toList();
+      // Map each spot to its DestinationModel to find coordinates
+      final List<MapEntry<ItinerarySpot, DestinationModel>> spotsWithCoords = terminal.spots.map((spot) {
+        final dest = DestinationsData.destinations.firstWhere(
+          (d) => d.id == spot.id,
+          orElse: () => DestinationModel(
+            id: spot.id, name: spot.name, category: spot.category, image: spot.image,
+            shortDesc: '', description: '', location: '', hours: '', ticket: '', duration: '',
+            rating: 4.5, lat: terminal.lat, lng: terminal.lng, // fallback to terminal
+          ),
+        );
+        return MapEntry(spot, dest);
+      }).toList();
 
-      selectedSpots.sort((a, b) =>
-          terminal.spots.indexOf(a).compareTo(terminal.spots.indexOf(b)));
+      if (spotsWithCoords.isNotEmpty) {
+        // Pick a random starting spot as seed
+        final seedIndex = (DateTime.now().millisecondsSinceEpoch % spotsWithCoords.length).floor();
+        final seed = spotsWithCoords[seedIndex];
 
-      final List<String> times = _selectedHours == 4
-          ? ['09:00', '11:00']
-          : _selectedHours == 6
-              ? ['09:00', '10:30', '13:30']
-              : ['09:00', '10:30', '13:00', '15:00'];
+        // Sort all spots by distance to the seed spot
+        spotsWithCoords.sort((a, b) {
+          final distA = Geolocator.distanceBetween(seed.value.lat, seed.value.lng, a.value.lat, a.value.lng);
+          final distB = Geolocator.distanceBetween(seed.value.lat, seed.value.lng, b.value.lat, b.value.lng);
+          return distA.compareTo(distB);
+        });
 
-      final List<ItinerarySpot> sequencedSpots = [];
-      for (int i = 0; i < selectedSpots.length; i++) {
-        final s = selectedSpots[i];
-        final distanceLabel = i == 0
-            ? (s.distance.contains('dari') ? s.distance : '${s.distance} dari stasiun')
-            : s.distance;
+        // Take the closest spotCount spots (including the seed)
+        final selectedEntries = spotsWithCoords.take(spotCount).toList();
 
-        sequencedSpots.add(ItinerarySpot(
-          id: s.id,
-          name: s.name,
-          image: s.image,
-          timeLabel: times[i],
-          duration: s.duration,
-          ticketPrice: s.ticketPrice,
-          distance: distanceLabel,
-          category: s.category,
-        ));
+        // Sort the selected spots in logical sequence based on distance to starting terminal
+        selectedEntries.sort((a, b) {
+          final distA = Geolocator.distanceBetween(terminal.lat, terminal.lng, a.value.lat, a.value.lng);
+          final distB = Geolocator.distanceBetween(terminal.lat, terminal.lng, b.value.lat, b.value.lng);
+          return distA.compareTo(distB);
+        });
+
+        final List<String> times = _selectedHours == 4
+            ? ['09:00', '11:00']
+            : _selectedHours == 6
+                ? ['09:00', '10:30', '13:30']
+                : ['09:00', '10:30', '13:00', '15:00'];
+
+        final List<ItinerarySpot> sequencedSpots = [];
+        double lastLat = terminal.lat;
+        double lastLng = terminal.lng;
+
+        for (int i = 0; i < selectedEntries.length; i++) {
+          final entry = selectedEntries[i];
+          final s = entry.key;
+          final dest = entry.value;
+
+          final double distMeters = Geolocator.distanceBetween(lastLat, lastLng, dest.lat, dest.lng);
+          final double distKm = distMeters / 1000.0;
+          final String distanceLabel = i == 0
+              ? '${distKm.toStringAsFixed(1)} km dari ${terminal.name}'
+              : '${distKm.toStringAsFixed(1)} km dari spot sebelumnya';
+
+          sequencedSpots.add(ItinerarySpot(
+            id: s.id,
+            name: s.name,
+            image: s.image,
+            timeLabel: times[i],
+            duration: s.duration,
+            ticketPrice: s.ticketPrice,
+            distance: distanceLabel,
+            category: s.category,
+          ));
+
+          lastLat = dest.lat;
+          lastLng = dest.lng;
+        }
+
+        _currentItinerary = ItineraryModel(
+          terminalName: terminal.name,
+          hours: _selectedHours,
+          spots: sequencedSpots,
+          food: terminal.foodRec,
+          transport: terminal.transport,
+        );
       }
-
-      _currentItinerary = ItineraryModel(
-        terminalName: terminal.name,
-        hours: _selectedHours,
-        spots: sequencedSpots,
-        food: terminal.foodRec,
-        transport: terminal.transport,
-      );
     }
 
     _isGenerating = false;
