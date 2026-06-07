@@ -11,6 +11,7 @@ import '../../core/models/itinerary_model.dart';
 import '../../providers/rental_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../widgets/common/contact_admin_sheet.dart';
 import '../../widgets/common/bounceable.dart';
 
@@ -56,6 +57,7 @@ class _RentalScreenState extends State<RentalScreen> {
     final drivers = DriverData.byVehicleType(vehicleType);
     if (drivers.isEmpty) return;
     final driver = drivers.first; // Pick the first available driver for this unit
+    final language = context.read<LanguageProvider>();
 
     showDialog(
       context: context,
@@ -67,7 +69,7 @@ class _RentalScreenState extends State<RentalScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Detail Unit Sewa $vehicleType',
+                language.translateText(id: 'Detail Unit Sewa $vehicleType', en: 'Rental Unit Detail: $vehicleType'),
                 style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
               ),
               const SizedBox(height: 16),
@@ -105,7 +107,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Nama Kendaraan', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(language.translateText(id: 'Nama Kendaraan', en: 'Vehicle Name'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
                   Text(driver.vehicleName, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               ),
@@ -113,7 +115,7 @@ class _RentalScreenState extends State<RentalScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Plat Nomor', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(language.translateText(id: 'Plat Nomor', en: 'License Plate'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
                   Text(driver.plateNumber, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               ),
@@ -121,17 +123,19 @@ class _RentalScreenState extends State<RentalScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Jenis Kendaraan', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
-                  Text(driver.vehicleType, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(language.translateText(id: 'Jenis Kendaraan', en: 'Vehicle Type'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(driver.vehicleType == 'Motor' ? language.translateText(id: 'Motor', en: 'Motorbike') : language.translateText(id: 'Mobil', en: 'Car'), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Tarif Sewa', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(language.translateText(id: 'Tarif Sewa', en: 'Rental Rate'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
                   Text(
-                    vehicleType == 'Motor' ? 'Rp 10.000 / Jam' : 'Rp 40.000 / Jam',
+                    vehicleType == 'Motor'
+                        ? language.translateText(id: 'Rp 10.000 / Jam', en: 'Rp 10,000 / Hour')
+                        : language.translateText(id: 'Rp 40.000 / Jam', en: 'Rp 40,000 / Hour'),
                     style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
                   ),
                 ],
@@ -151,7 +155,7 @@ class _RentalScreenState extends State<RentalScreen> {
                     rental.setCustomPrice(null); // use hourly rate
                     context.push('/payment');
                   },
-                  child: Text('Sewa Sekarang', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+                  child: Text(language.translateText(id: 'Sewa Sekarang', en: 'Rent Now'), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -163,6 +167,7 @@ class _RentalScreenState extends State<RentalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: NestedScrollView(
@@ -176,7 +181,7 @@ class _RentalScreenState extends State<RentalScreen> {
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
               centerTitle: false,
               title: Text(
-                'Persewaan Routee',
+                language.translateText(id: 'Persewaan Routee', en: 'Routee Rental'),
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 20,
@@ -217,7 +222,7 @@ class _RentalScreenState extends State<RentalScreen> {
                   children: [
                     Expanded(
                       child: _TabButton(
-                        label: 'Sewa Kendaraan',
+                        label: language.translateText(id: 'Sewa Kendaraan', en: 'Rent Vehicle'),
                         icon: Icons.directions_car_rounded,
                         isActive: _selectedTab == 0,
                         onTap: () => setState(() => _selectedTab = 0),
@@ -225,7 +230,7 @@ class _RentalScreenState extends State<RentalScreen> {
                     ),
                     Expanded(
                       child: _TabButton(
-                        label: 'Ojek RO-JEK',
+                        label: language.translateText(id: 'Ojek RO-JEK', en: 'RO-JEK Ojek'),
                         icon: Icons.two_wheeler_rounded,
                         isActive: _selectedTab == 1,
                         onTap: () => setState(() => _selectedTab = 1),
@@ -253,6 +258,7 @@ class _RentalScreenState extends State<RentalScreen> {
   // SEWA KENDARAAN (GUBENG CENTERED) TAB
   // ═══════════════════════════════════════════════════════
   Widget _buildSewaTab() {
+    final language = context.watch<LanguageProvider>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,7 +280,7 @@ class _RentalScreenState extends State<RentalScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Terpusat di Stasiun Gubeng',
+                      language.translateText(id: 'Terpusat di Stasiun Gubeng', en: 'Centered at Gubeng Station'),
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -283,7 +289,10 @@ class _RentalScreenState extends State<RentalScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Layanan persewaan kami berlokasi di area sekitar Stasiun Gubeng Surabaya. Pengguna dipersilakan mendatangi persewaan secara langsung (bisa menggunakan KRL, Commuter Line, bis, atau ojek umum terlebih dahulu).',
+                      language.translateText(
+                        id: 'Layanan persewaan kami berlokasi di area sekitar Stasiun Gubeng Surabaya. Pengguna dipersilakan mendatangi persewaan secara langsung (bisa menggunakan KRL, Commuter Line, bis, atau ojek umum terlebih dahulu).',
+                        en: 'Our rental service is located in the area around Surabaya Gubeng Station. Users are welcome to come directly to the rental location (can use KRL, Commuter Line, bus, or public ojek first).',
+                      ),
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         color: AppColors.textSecondary,
@@ -299,7 +308,7 @@ class _RentalScreenState extends State<RentalScreen> {
         const SizedBox(height: 20),
 
         Text(
-          'Pilihan Unit Kendaraan',
+          language.translateText(id: 'Pilihan Unit Kendaraan', en: 'Vehicle Unit Options'),
           style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 10),
@@ -308,19 +317,33 @@ class _RentalScreenState extends State<RentalScreen> {
         _buildVehicleUnitCard(
           icon: '🛵',
           type: 'Motor',
-          title: 'Sewa Motor Murah',
-          desc: 'Unit terawat (Honda Vario 160, Yamaha NMAX). Lincah menyusuri jalanan Surabaya.',
-          price: 'Rp 10.000 / Jam',
-          included: ['Helm SNI', 'Jas Hujan', 'Kunci Ganda'],
+          title: language.translateText(id: 'Sewa Motor Murah', en: 'Affordable Motorbike Rental'),
+          desc: language.translateText(
+            id: 'Unit terawat (Honda Vario 160, Yamaha NMAX). Lincah menyusuri jalanan Surabaya.',
+            en: 'Well-maintained units (Honda Vario 160, Yamaha NMAX). Agile in navigating Surabaya streets.',
+          ),
+          price: language.translateText(id: 'Rp 10.000 / Jam', en: 'Rp 10,000 / Hr'),
+          included: [
+            language.translateText(id: 'Helm SNI', en: 'SNI Helmet'),
+            language.translateText(id: 'Jas Hujan', en: 'Raincoat'),
+            language.translateText(id: 'Kunci Ganda', en: 'Double Lock'),
+          ],
         ),
         const SizedBox(height: 12),
         _buildVehicleUnitCard(
           icon: '🚗',
           type: 'Mobil',
-          title: 'Sewa Mobil Nyaman',
-          desc: 'Unit keluarga (Toyota Avanza, Daihatsu Xenia). Hemat dan dingin ber-AC.',
-          price: 'Rp 40.000 / Jam',
-          included: ['AC Dingin', 'Asuransi Perjalanan', 'Charger HP'],
+          title: language.translateText(id: 'Sewa Mobil Nyaman', en: 'Comfortable Car Rental'),
+          desc: language.translateText(
+            id: 'Unit keluarga (Toyota Avanza, Daihatsu Xenia). Hemat dan dingin ber-AC.',
+            en: 'Family units (Toyota Avanza, Daihatsu Xenia). Economical with cold AC.',
+          ),
+          price: language.translateText(id: 'Rp 40.000 / Jam', en: 'Rp 40,000 / Hr'),
+          included: [
+            language.translateText(id: 'AC Dingin', en: 'Cold AC'),
+            language.translateText(id: 'Asuransi Perjalanan', en: 'Travel Insurance'),
+            language.translateText(id: 'Charger HP', en: 'Phone Charger'),
+          ],
         ),
 
         const SizedBox(height: 24),
@@ -344,12 +367,15 @@ class _RentalScreenState extends State<RentalScreen> {
               const Text('✉️', style: TextStyle(fontSize: 32)),
               const SizedBox(height: 10),
               Text(
-                'Ingin Memesan / Bertanya?',
+                language.translateText(id: 'Ingin Memesan / Bertanya?', en: 'Want to Order / Inquire?'),
                 style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               Text(
-                'Silakan hubungi admin Routee secara langsung melalui WhatsApp atau Instagram resmi kami untuk ketersediaan unit dan koordinasi penjemputan.',
+                language.translateText(
+                  id: 'Silakan hubungi admin Routee secara langsung melalui WhatsApp atau Instagram resmi kami untuk ketersediaan unit dan koordinasi penjemputan.',
+                  en: 'Please contact Routee admin directly via our official WhatsApp or Instagram for unit availability and pickup coordination.',
+                ),
                 style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary, height: 1.5),
                 textAlign: TextAlign.center,
               ),
@@ -501,6 +527,7 @@ class _RentalScreenState extends State<RentalScreen> {
   // OJEK ONLINE (RO-JEK) TAB
   // ═══════════════════════════════════════════════════════
   Widget _buildOjekTab() {
+    final language = context.watch<LanguageProvider>();
     final isLoggedIn = context.read<AuthProvider>().isLoggedIn;
 
     // Get coordinates for start point
@@ -602,7 +629,10 @@ class _RentalScreenState extends State<RentalScreen> {
                       style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     Text(
-                      'Layanan ojek khusus antar-destinasi trip dengan tarif transparan.',
+                      language.translateText(
+                        id: 'Layanan ojek khusus antar-destinasi trip dengan tarif transparan.',
+                        en: 'Special ojek service between trip destinations with transparent rates.',
+                      ),
                       style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70, height: 1.4),
                     ),
                   ],
@@ -613,7 +643,7 @@ class _RentalScreenState extends State<RentalScreen> {
         ),
         const SizedBox(height: 16),
 
-        Text('Konfigurasi Pengantaran', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(language.translateText(id: 'Konfigurasi Pengantaran', en: 'Delivery Configuration'), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
 
         // Configurations Inputs Card
@@ -628,7 +658,7 @@ class _RentalScreenState extends State<RentalScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Start point
-              Text('Titik Keberangkatan', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Titik Keberangkatan', en: 'Departure Point'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekStart,
@@ -644,7 +674,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Destination 1
-              Text('Destinasi Utama (Wajib)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Destinasi Utama (Wajib)', en: 'Main Destination (Required)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekDest1,
@@ -664,7 +694,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Destination 2
-              Text('Destinasi Kedua (Wajib)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Destinasi Kedua (Wajib)', en: 'Second Destination (Required)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekDest2,
@@ -684,7 +714,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Destination 3
-              Text('Destinasi Ketiga (Opsional)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Destinasi Ketiga (Opsional)', en: 'Third Destination (Optional)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekDest3,
@@ -692,7 +722,7 @@ class _RentalScreenState extends State<RentalScreen> {
                   prefixIcon: const Icon(Icons.add_location_rounded, color: AppColors.primary),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                items: destinationOptionsWithNone.map((d) => DropdownMenuItem(value: d, child: Text(d == '-' ? 'Tidak Ada' : d, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
+                items: destinationOptionsWithNone.map((d) => DropdownMenuItem(value: d, child: Text(d == '-' ? language.translateText(id: 'Tidak Ada', en: 'None') : d, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: (val) {
                   if (val != null) {
                     setState(() {
@@ -707,7 +737,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Destination 4
-              Text('Destinasi Keempat (Opsional)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Destinasi Keempat (Opsional)', en: 'Fourth Destination (Optional)'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekDest4,
@@ -715,7 +745,7 @@ class _RentalScreenState extends State<RentalScreen> {
                   prefixIcon: const Icon(Icons.add_location_rounded, color: AppColors.primary),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                items: destinationOptionsWithNone.map((d) => DropdownMenuItem(value: d, child: Text(d == '-' ? 'Tidak Ada' : d, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
+                items: destinationOptionsWithNone.map((d) => DropdownMenuItem(value: d, child: Text(d == '-' ? language.translateText(id: 'Tidak Ada', en: 'None') : d, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: _ojekDest3 == '-' ? null : (val) {
                   if (val != null) {
                     setState(() => _ojekDest4 = val);
@@ -725,7 +755,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Time picker / dropdown
-              Text('Estimasi Waktu Penjemputan', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Estimasi Waktu Penjemputan', en: 'Estimated Pickup Time'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: _ojekTime,
@@ -741,7 +771,7 @@ class _RentalScreenState extends State<RentalScreen> {
               const SizedBox(height: 14),
 
               // Durasi Sewa
-              Text('Durasi Perjalanan / Sewa Ojek', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(language.translateText(id: 'Durasi Perjalanan / Sewa Ojek', en: 'Trip Duration / Ojek Rental'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
                 value: _ojekHours,
@@ -749,7 +779,7 @@ class _RentalScreenState extends State<RentalScreen> {
                   prefixIcon: const Icon(Icons.av_timer_rounded, color: AppColors.primary),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                items: durationOptions.map((h) => DropdownMenuItem<int>(value: h, child: Text('$h Jam', style: GoogleFonts.poppins(fontSize: 12)))).toList(),
+                items: durationOptions.map((h) => DropdownMenuItem<int>(value: h, child: Text('$h ' + language.translateText(id: 'Jam', en: 'Hours'), style: GoogleFonts.poppins(fontSize: 12)))).toList(),
                 onChanged: (val) {
                   if (val != null) setState(() => _ojekHours = val);
                 },
@@ -760,7 +790,7 @@ class _RentalScreenState extends State<RentalScreen> {
         const SizedBox(height: 20),
 
         // Route info card
-        Text('Informasi Penjemputan', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+        Text(language.translateText(id: 'Informasi Penjemputan', en: 'Pickup Information'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
@@ -774,19 +804,19 @@ class _RentalScreenState extends State<RentalScreen> {
             children: [
               _buildRouteSummaryItem(
                 icon: Icons.train_rounded,
-                label: 'Lokasi Penjemputan Awal',
+                label: language.translateText(id: 'Lokasi Penjemputan Awal', en: 'Initial Pickup Location'),
                 value: _ojekStart,
               ),
               const Divider(height: 20),
               _buildRouteSummaryItem(
                 icon: Icons.schedule_rounded,
-                label: 'Jadwal Penjemputan Driver',
-                value: 'Standby & Jemput pukul $_ojekTime',
+                label: language.translateText(id: 'Jadwal Penjemputan Driver', en: 'Driver Pickup Schedule'),
+                value: language.translateText(id: 'Standby & Jemput pukul $_ojekTime', en: 'Standby & Pickup at $_ojekTime'),
               ),
               const Divider(height: 20),
               _buildRouteSummaryItem(
                 icon: Icons.alt_route_rounded,
-                label: 'Estimasi Jarak Rute',
+                label: language.translateText(id: 'Estimasi Jarak Rute', en: 'Estimated Route Distance'),
                 value: '${totalKm.toStringAsFixed(1)} km',
               ),
             ],
@@ -804,15 +834,15 @@ class _RentalScreenState extends State<RentalScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Rincian Biaya Ro-Jek', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              Text(language.translateText(id: 'Rincian Biaya Ro-Jek', en: 'Ro-Jek Price Details'), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
               const SizedBox(height: 8),
-              _buildPriceRow('Penyewaan Kendaraan ($_ojekHours Jam)', _formatRp(vehiclePrice)),
+              _buildPriceRow(language.translateText(id: 'Penyewaan Kendaraan', en: 'Vehicle Rental') + ' ($_ojekHours ' + language.translateText(id: 'Jam', en: 'Hours') + ')', _formatRp(vehiclePrice)),
               const SizedBox(height: 6),
-              _buildPriceRow('Bahan Bakar Minyak (BBM ~${totalKm.toStringAsFixed(1)} km)', _formatRp(bbmPrice)),
+              _buildPriceRow(language.translateText(id: 'Bahan Bakar Minyak (BBM)', en: 'Fuel (BBM)') + ' (~${totalKm.toStringAsFixed(1)} km)', _formatRp(bbmPrice)),
               const SizedBox(height: 6),
-              _buildPriceRow('Jasa Driver (Layanan Flat)', _formatRp(jasaDriverPrice)),
+              _buildPriceRow(language.translateText(id: 'Jasa Driver (Layanan Flat)', en: 'Driver Service (Flat Service)'), _formatRp(jasaDriverPrice)),
               const Divider(color: AppColors.accent, height: 20),
-              _buildPriceRow('Total Biaya', _formatRp(basePrice), isBold: true),
+              _buildPriceRow(language.translateText(id: 'Total Biaya', en: 'Total Price'), _formatRp(basePrice), isBold: true),
             ],
           ),
         ),
@@ -868,7 +898,7 @@ class _RentalScreenState extends State<RentalScreen> {
                     Icon(isLoggedIn ? Icons.sports_motorsports_rounded : Icons.lock_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      isLoggedIn ? 'Pesan Ojek Sekarang' : 'Login untuk Memesan',
+                      isLoggedIn ? language.translateText(id: 'Pesan Ojek Sekarang', en: 'Order Ojek Now') : language.translateText(id: 'Login untuk Memesan', en: 'Login to Order'),
                       style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                   ],
@@ -1039,6 +1069,7 @@ class _RentalScreenState extends State<RentalScreen> {
   }
 
   void _showLoginDialog() {
+    final language = context.read<LanguageProvider>();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1047,24 +1078,27 @@ class _RentalScreenState extends State<RentalScreen> {
           children: [
             const Icon(Icons.lock_rounded, color: AppColors.primary),
             const SizedBox(width: 8),
-            Text('Login Diperlukan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(language.translateText(id: 'Login Diperlukan', en: 'Login Required'), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Text(
-          'Kamu perlu login atau buat akun untuk memesan ojek online.',
+          language.translateText(
+            id: 'Kamu perlu login atau buat akun untuk memesan ojek online.',
+            en: 'You need to login or create an account to order an online ojek.',
+          ),
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Nanti', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+            child: Text(language.translateText(id: 'Nanti', en: 'Later'), style: GoogleFonts.poppins(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.go('/login');
             },
-            child: Text('Login', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            child: Text(language.translateText(id: 'Login', en: 'Login'), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
         ],
       ),

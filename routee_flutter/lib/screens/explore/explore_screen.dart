@@ -7,6 +7,7 @@ import '../../core/data/destinations_data.dart';
 import '../../core/data/culinary_data.dart';
 import '../../core/models/destination_model.dart';
 import '../../providers/explore_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../widgets/common/bounceable.dart';
 
 import '../../core/data/umkm_data.dart';
@@ -67,6 +68,7 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: NestedScrollView(
@@ -75,9 +77,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
             pinned: true,
             expandedHeight: 150,
             backgroundColor: AppColors.primary,
-            flexibleSpace: const _CollapsingExploreAppbarSpace(
-              title: 'Explore',
-              subtitle: 'Jelajahi Semua Destinasi & Kuliner',
+            flexibleSpace: _CollapsingExploreAppbarSpace(
+              title: language.translate('explore'),
+              subtitle: language.translateText(
+                id: 'Jelajahi Semua Destinasi & Kuliner',
+                en: 'Explore All Destinations & Culinary',
+              ),
               expandedHeight: 150,
             ),
             bottom: PreferredSize(
@@ -87,7 +92,15 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 color: AppColors.primary,
                 child: TabBar(
                   controller: _tabController,
-                  tabs: tabs.map((t) => Tab(text: t['label'] as String)).toList(),
+                  tabs: tabs.map((t) {
+                    String label = t['label'] as String;
+                    if (t['key'] == 'Religi') {
+                      label = language.translateText(id: '🕌  Religi', en: '🕌  Religious');
+                    } else if (t['key'] == 'Kuliner') {
+                      label = language.translateText(id: '🍜  Kuliner', en: '🍜  Culinary');
+                    }
+                    return Tab(text: label);
+                  }).toList(),
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white54,
                   indicatorColor: AppColors.accent,
@@ -111,7 +124,10 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
                 controller: _searchController,
                 onChanged: (q) => context.read<ExploreProvider>().setSearch(q),
                 decoration: InputDecoration(
-                  hintText: 'Cari destinasi, kuliner...',
+                  hintText: language.translateText(
+                    id: 'Cari destinasi, kuliner...',
+                    en: 'Search destinations, culinary...',
+                  ),
                   prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -148,11 +164,12 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
 class _StatsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     final stats = [
-      {'n': '${DestinationsData.destinations.length}', 'l': 'Destinasi'},
-      {'n': '${CulinaryData.culinary.length}', 'l': 'Kuliner'},
-      {'n': '4.7★', 'l': 'Avg Rating'},
-      {'n': '~Rp150rb', 'l': 'Per Trip'},
+      {'n': '${DestinationsData.destinations.length}', 'l': language.translateText(id: 'Destinasi', en: 'Destinations')},
+      {'n': '${CulinaryData.culinary.length}', 'l': language.translateText(id: 'Kuliner', en: 'Culinary')},
+      {'n': '4.7★', 'l': language.translateText(id: 'Avg Rating', en: 'Avg Rating')},
+      {'n': '~Rp150rb', 'l': language.translateText(id: 'Per Trip', en: 'Per Trip')},
     ];
 
     return Container(
@@ -224,6 +241,7 @@ class _DestinationListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     Color bg;
     String icon;
     switch (destination.category) {
@@ -296,7 +314,13 @@ class _DestinationListCard extends StatelessWidget {
                       spacing: 6,
                       children: [
                         _MetaChip(icon: Icons.schedule_rounded, label: destination.duration),
-                        _MetaChip(icon: Icons.local_activity_rounded, label: destination.ticket, isGreen: destination.ticket == 'Gratis'),
+                        _MetaChip(
+                          icon: Icons.local_activity_rounded,
+                          label: destination.ticket == 'Gratis'
+                              ? language.translateText(id: 'Gratis', en: 'Free')
+                              : destination.ticket,
+                          isGreen: destination.ticket == 'Gratis',
+                        ),
                       ],
                     ),
                   ],
@@ -471,15 +495,16 @@ class _EmptySearch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('🔍', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
-          Text('Tidak ditemukan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(language.translateText(id: 'Tidak ditemukan', en: 'No results found'), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 4),
-          Text('Coba kata kunci lain untuk "$query"', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textMuted)),
+          Text(language.translateText(id: 'Coba kata kunci lain untuk "$query"', en: 'Try other keywords for "$query"'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textMuted)),
         ],
       ),
     );
@@ -580,13 +605,14 @@ class _CollapsingExploreAppbarSpace extends StatelessWidget {
 class _UmkmTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Consumer<ExploreProvider>(
       builder: (ctx, provider, _) {
         final filters = [
-          {'key': 'all', 'label': '🏪 Semua'},
-          {'key': 'fashion', 'label': '👗 Fashion'},
-          {'key': 'food', 'label': '🍜 Makanan'},
-          {'key': 'craft', 'label': '🎨 Kerajinan'},
+          {'key': 'all', 'label': language.translateText(id: '🏪 Semua', en: '🏪 All')},
+          {'key': 'fashion', 'label': language.translateText(id: '👗 Fashion', en: '👗 Fashion')},
+          {'key': 'food', 'label': language.translateText(id: '🍜 Makanan', en: '🍜 Food')},
+          {'key': 'craft', 'label': language.translateText(id: '🎨 Kerajinan', en: '🎨 Craft')},
         ];
 
         final filtered = provider.umkmFilter == 'all'
@@ -640,7 +666,7 @@ class _UmkmTabView extends StatelessWidget {
                         children: [
                           const Text('📦', style: TextStyle(fontSize: 48)),
                           const SizedBox(height: 8),
-                          Text('Tidak ada produk di kategori ini', style: GoogleFonts.poppins(color: AppColors.textMuted)),
+                          Text(language.translateText(id: 'Tidak ada produk di kategori ini', en: 'No products in this category'), style: GoogleFonts.poppins(color: AppColors.textMuted)),
                         ],
                       ),
                     )

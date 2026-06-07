@@ -13,6 +13,7 @@ import '../../widgets/common/bounceable.dart';
 import '../../widgets/common/contact_admin_sheet.dart';
 
 import '../../providers/home_scroll_provider.dart';
+import '../../providers/language_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,7 @@ class HomeScreen extends StatelessWidget {
     final featured = DestinationsData.destinations.take(6).toList();
     final featuredCulinary = CulinaryData.culinary.take(4).toList();
     final homeScroll = context.watch<HomeScrollProvider>();
+    final language = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -40,10 +42,10 @@ class HomeScreen extends StatelessWidget {
           // ─── DESTINATIONS ─────────────────────────────
           SliverToBoxAdapter(
             child: _SectionHeader(
-              label: 'Hidden Gems',
-              title: 'Destinasi Heritage Surabaya',
-              subtitle: 'Tempat bersejarah kaya cerita yang menunggu dijelajahi',
-              actionLabel: 'Lihat Semua',
+              label: language.translateText(id: 'Hidden Gems', en: 'Hidden Gems'),
+              title: language.translateText(id: 'Destinasi Heritage Surabaya', en: 'Surabaya Heritage Destinations'),
+              subtitle: language.translateText(id: 'Tempat bersejarah kaya cerita yang menunggu dijelajahi', en: 'Historic places rich in stories waiting to be explored'),
+              actionLabel: language.translateText(id: 'Lihat Semua', en: 'View All'),
               onAction: () => context.go('/explore?category=Heritage'),
             ),
           ),
@@ -71,10 +73,10 @@ class HomeScreen extends StatelessWidget {
           // ─── CULINARY ─────────────────────────────────
           SliverToBoxAdapter(
             child: _SectionHeader(
-              label: 'Kuliner Legendaris',
-              title: 'Wajib Dicoba di Surabaya',
-              subtitle: 'Kuliner otentik dalam jangkauan rute perjalananmu',
-              actionLabel: 'Lihat Semua',
+              label: language.translateText(id: 'Kuliner Legendaris', en: 'Legendary Culinary'),
+              title: language.translateText(id: 'Wajib Dicoba di Surabaya', en: 'Must-Try in Surabaya'),
+              subtitle: language.translateText(id: 'Kuliner otentik dalam jangkauan rute perjalananmu', en: 'Authentic culinary within your travel route'),
+              actionLabel: language.translateText(id: 'Lihat Semua', en: 'View All'),
               onAction: () => context.go('/explore?category=Kuliner'),
             ),
           ),
@@ -118,6 +120,7 @@ class HomeScreen extends StatelessWidget {
 class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -195,7 +198,7 @@ class _HeroSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Heritage Trip',
+                          language.translateText(id: 'Rute Warisan', en: 'Heritage Trip'),
                           style: GoogleFonts.poppins(
                             color: AppColors.accentLight,
                             fontSize: 10,
@@ -269,7 +272,7 @@ class _HeroSection extends StatelessWidget {
 
               // Headline
               Text(
-                'Where to go',
+                language.translateText(id: 'Mau ke mana', en: 'Where to go'),
                 style: GoogleFonts.poppins(
                   color: Colors.white.withOpacity(0.85),
                   fontSize: 28,
@@ -278,7 +281,7 @@ class _HeroSection extends StatelessWidget {
                 ),
               ),
               Text(
-                'today? 🤔',
+                language.translateText(id: 'hari ini? 🤔', en: 'today? 🤔'),
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 32,
@@ -290,7 +293,10 @@ class _HeroSection extends StatelessWidget {
               const SizedBox(height: 12),
 
               Text(
-                'Temukan hidden gems, situs heritage, dan kuliner legendaris Surabaya dalam 1 hari perjalanan efisien.',
+                language.translateText(
+                  id: 'Temukan permata tersembunyi, situs sejarah, dan kuliner legendaris Surabaya dalam 1 hari perjalanan efisien.',
+                  en: 'Discover hidden gems, heritage sites, and legendary culinary delights of Surabaya in an efficient 1-day trip.',
+                ),
                 style: GoogleFonts.poppins(
                   color: Colors.white.withOpacity(0.75),
                   fontSize: 13,
@@ -332,7 +338,7 @@ class _HeroSection extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _buildButton(
-                      label: '🗺️  Plan My Trip',
+                      label: language.translateText(id: '🗺️  Rencanakan Trip', en: '🗺️  Plan My Trip'),
                       isPrimary: true,
                       context: context,
                     ),
@@ -340,7 +346,7 @@ class _HeroSection extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _buildButton(
-                      label: 'Explore',
+                      label: language.translate('explore'),
                       isPrimary: false,
                       context: context,
                     ),
@@ -458,10 +464,26 @@ class _HeroImageRow extends StatelessWidget {
 class _HowItWorksSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     final steps = [
-      {'num': '01', 'icon': '🎯', 'title': 'Pilih Preferensi', 'desc': 'Heritage, religi, atau kuliner?'},
-      {'num': '02', 'icon': '🗺️', 'title': 'Generate Itinerary', 'desc': 'Algoritma Routee susun rute terbaik'},
-      {'num': '03', 'icon': '🚀', 'title': 'Mulai Perjalanan!', 'desc': 'Ikuti rute dan nikmati Surabaya'},
+      {
+        'num': '01',
+        'icon': '🎯',
+        'title': language.translateText(id: 'Pilih Preferensi', en: 'Select Preferences'),
+        'desc': language.translateText(id: 'Heritage, religi, atau kuliner?', en: 'Heritage, religion, or culinary?')
+      },
+      {
+        'num': '02',
+        'icon': '🗺️',
+        'title': language.translateText(id: 'Generate Itinerary', en: 'Generate Itinerary'),
+        'desc': language.translateText(id: 'Algoritma Routee susun rute terbaik', en: 'Routee\'s algorithm plans the best route')
+      },
+      {
+        'num': '03',
+        'icon': '🚀',
+        'title': language.translateText(id: 'Mulai Perjalanan!', en: 'Start Journey!'),
+        'desc': language.translateText(id: 'Ikuti rute dan nikmati Surabaya', en: 'Follow the route and enjoy Surabaya')
+      },
     ];
 
     return Container(
@@ -470,9 +492,9 @@ class _HowItWorksSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Cara Kerja', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
+          Text(language.translateText(id: 'Cara Kerja', en: 'How it Works'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
           const SizedBox(height: 4),
-          Text('Perjalanan Cerdas dalam 3 Langkah', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(language.translateText(id: 'Perjalanan Cerdas dalam 3 Langkah', en: 'Smart Travel in 3 Steps'), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 20),
           ...steps.asMap().entries.map((e) => _StepTile(step: e.value, isLast: e.key == steps.length - 1)),
           const SizedBox(height: 16),
@@ -482,7 +504,7 @@ class _HowItWorksSection extends StatelessWidget {
               onTap: () => context.go('/trip'),
               child: ElevatedButton(
                 onPressed: () {},
-                child: const Text('🗺️  Mulai Rencanakan Trip'),
+                child: Text('🗺️  ' + language.translateText(id: 'Mulai Rencanakan Trip', en: 'Start Planning Trip')),
               ),
             ),
           ),
@@ -543,11 +565,12 @@ class _StepTile extends StatelessWidget {
 class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     final stats = [
-      {'num': '17+', 'label': 'Destinasi'},
-      {'num': '14', 'label': 'Kuliner'},
-      {'num': '4.7★', 'label': 'Avg Rating'},
-      {'num': '~Rp150rb', 'label': 'Per Trip'},
+      {'num': '17+', 'label': language.translateText(id: 'Destinasi', en: 'Destinations')},
+      {'num': '14', 'label': language.translateText(id: 'Kuliner', en: 'Culinary')},
+      {'num': '4.7★', 'label': language.translateText(id: 'Avg Rating', en: 'Avg Rating')},
+      {'num': '~Rp150rb', 'label': language.translateText(id: 'Per Trip', en: 'Per Trip')},
     ];
 
     return Container(
@@ -664,6 +687,7 @@ class _SectionHeader extends StatelessWidget {
 class _CtaBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       padding: const EdgeInsets.all(24),
@@ -687,7 +711,7 @@ class _CtaBanner extends StatelessWidget {
           const Text('🗺️', style: TextStyle(fontSize: 36)),
           const SizedBox(height: 12),
           Text(
-            'Siap Jelajahi Surabaya?',
+            language.translateText(id: 'Siap Jelajahi Surabaya?', en: 'Ready to Explore Surabaya?'),
             style: GoogleFonts.poppins(
               color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700,
             ),
@@ -695,7 +719,10 @@ class _CtaBanner extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Buat itinerary 1-hari terbaikmu sekarang — gratis, cepat, dan tanpa ribet.',
+            language.translateText(
+              id: 'Buat itinerary 1-hari terbaikmu sekarang — gratis, cepat, dan tanpa ribet.',
+              en: 'Create your best 1-day itinerary now — free, fast, and hassle-free.',
+            ),
             style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, height: 1.5),
             textAlign: TextAlign.center,
           ),
@@ -711,7 +738,7 @@ class _CtaBanner extends StatelessWidget {
                       backgroundColor: AppColors.accent,
                       foregroundColor: AppColors.textPrimary,
                     ),
-                    child: const Text('Plan My Trip'),
+                    child: Text(language.translateText(id: 'Rencana Trip', en: 'Plan My Trip')),
                   ),
                 ),
               ),
@@ -725,7 +752,7 @@ class _CtaBanner extends StatelessWidget {
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white54),
                     ),
-                    child: const Text('Explore Dulu'),
+                    child: Text(language.translateText(id: 'Jelajah Dulu', en: 'Explore First')),
                   ),
                 ),
               ),
@@ -743,6 +770,7 @@ class _CtaBanner extends StatelessWidget {
 class _TransportCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.all(20),
@@ -765,9 +793,9 @@ class _TransportCta extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Butuh Transportasi?', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(language.translateText(id: 'Butuh Transportasi?', en: 'Need Transportation?'), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                 const SizedBox(height: 4),
-                Text('Sewa motor atau mobil + driver berpengalaman', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
+                Text(language.translateText(id: 'Sewa motor atau mobil + driver berpengalaman', en: 'Rent a motorbike or car + experienced driver'), style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70, height: 1.4)),
                 const SizedBox(height: 10),
                 Bounceable(
                   onTap: () => context.go('/rental'),
@@ -777,7 +805,7 @@ class _TransportCta extends StatelessWidget {
                       color: AppColors.accent,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text('Lihat Kendaraan →', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    child: Text(language.translateText(id: 'Lihat Kendaraan →', en: 'View Vehicles →'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                   ),
                 ),
               ],
@@ -795,16 +823,17 @@ class _TransportCta extends StatelessWidget {
 class _ContactSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LanguageProvider>();
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Hubungi Kami', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
+          Text(language.translateText(id: 'Hubungi Kami', en: 'Contact Us'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
           const SizedBox(height: 4),
-          Text('Butuh Bantuan?', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(language.translateText(id: 'Butuh Bantuan?', en: 'Need Help?'), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           const SizedBox(height: 4),
-          Text('Tim admin siap membantu melalui WhatsApp atau Instagram', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
+          Text(language.translateText(id: 'Tim admin siap membantu melalui WhatsApp atau Instagram', en: 'Our admin team is ready to help via WhatsApp or Instagram'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
           const SizedBox(height: 14),
           Row(
             children: [

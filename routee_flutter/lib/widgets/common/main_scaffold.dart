@@ -119,7 +119,10 @@ class _MainScaffoldState extends State<MainScaffold> {
                       index: 1,
                       currentIndex: currentIndex,
                       onTap: (i) => _onNavTap(context, i)),
-                  _TripNavItem(isActive: currentIndex == 2, onTap: () => _onNavTap(context, 2)),
+                  _TripNavItem(
+                      isActive: currentIndex == 2,
+                      label: language.translate('trip'),
+                      onTap: () => _onNavTap(context, 2)),
                   _NavItem(
                       icon: Icons.map_rounded,
                       label: language.translate('map'),
@@ -193,9 +196,10 @@ class _NavItem extends StatelessWidget {
 
 class _TripNavItem extends StatelessWidget {
   final bool isActive;
+  final String label;
   final VoidCallback onTap;
 
-  const _TripNavItem({required this.isActive, required this.onTap});
+  const _TripNavItem({required this.isActive, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +237,7 @@ class _TripNavItem extends StatelessWidget {
             ),
             const SizedBox(height: 3),
             Text(
-              'Trip',
+              label,
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,

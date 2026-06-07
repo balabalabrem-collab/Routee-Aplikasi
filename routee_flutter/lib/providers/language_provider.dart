@@ -178,4 +178,8 @@ class LanguageProvider extends ChangeNotifier {
 
     return translations[localeCode]?[key] ?? key;
   }
+
+  String translateText({required String id, required String en}) {
+    return _currentLanguage == 'English' ? en : id;
+  }
 }
