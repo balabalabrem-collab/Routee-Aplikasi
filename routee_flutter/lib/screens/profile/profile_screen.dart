@@ -8,7 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/rental_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/bookmark_provider.dart';
-import '../../widgets/common/bounceable.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -1214,64 +1214,146 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.all(24),
-          height: MediaQuery.of(ctx).size.height * 0.75,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+          height: MediaQuery.of(ctx).size.height * 0.85,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Dashboard Keuangan Routee',
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Ringkasan arus kas, pendapatan sewa, dan komisi ojek online.',
-                style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
-              ),
-              const SizedBox(height: 20),
-              // Total Revenue Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFF4A3219), Color(0xFF6D4C2A)]),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+                const SizedBox(height: 20),
+                Text(
+                  'Dashboard Keuangan Routee',
+                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Total Pendapatan Bersih', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70)),
-                    const SizedBox(height: 4),
-                    Text('Rp 4.250.000', style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
-                    const SizedBox(height: 12),
-                    const Divider(color: Colors.white24, height: 1),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Target Bulanan', style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70)),
-                        Text('85% Terpenuhi', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accentLight)),
-                      ],
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  'Ringkasan arus kas, pendapatan sewa, dan komisi ojek online.',
+                  style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text('Rincian Sumber Pendapatan', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-              const SizedBox(height: 10),
-              _buildFinanceItem(Icons.directions_car_rounded, 'Sewa Mobil Nyaman', 'Rp 2.400.000', '60 unit dipesan'),
-              _buildFinanceItem(Icons.two_wheeler_rounded, 'Sewa Motor Murah', 'Rp 1.150.000', '115 unit dipesan'),
-              _buildFinanceItem(Icons.sports_motorsports_rounded, 'Ojek Online RO-JEK', 'Rp 700.000', '35 pesanan selesai'),
-            ],
+                const SizedBox(height: 20),
+                // Total Revenue Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF4A3219), Color(0xFF6D4C2A)]),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Total Pendapatan Bersih', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70)),
+                      const SizedBox(height: 4),
+                      Text('Rp 4.250.000', style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white24, height: 1),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Target Bulanan', style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70)),
+                          Text('85% Terpenuhi', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accentLight)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Statistic Chart Section
+                Text('Statistik Kontribusi Keuangan', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: PieChart(
+                          PieChartData(
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 26,
+                            sections: [
+                              PieChartSectionData(
+                                color: AppColors.primary,
+                                value: 2400000,
+                                title: '56%',
+                                radius: 24,
+                                titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              PieChartSectionData(
+                                color: AppColors.accent,
+                                value: 1150000,
+                                title: '27%',
+                                radius: 24,
+                                titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              PieChartSectionData(
+                                color: const Color(0xFF6D4C2A),
+                                value: 700000,
+                                title: '17%',
+                                radius: 24,
+                                titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLegendItem(AppColors.primary, 'Mobil', '56.5%'),
+                            const SizedBox(height: 6),
+                            _buildLegendItem(AppColors.accent, 'Motor', '27.1%'),
+                            const SizedBox(height: 6),
+                            _buildLegendItem(const Color(0xFF6D4C2A), 'RO-JEK', '16.4%'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                Text('Rincian Sumber Pendapatan', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                const SizedBox(height: 10),
+                _buildFinanceItem(Icons.directions_car_rounded, 'Sewa Mobil Nyaman', 'Rp 2.400.000', '60 unit dipesan'),
+                _buildFinanceItem(Icons.two_wheeler_rounded, 'Sewa Motor Murah', 'Rp 1.150.000', '115 unit dipesan'),
+                _buildFinanceItem(Icons.sports_motorsports_rounded, 'Ojek Online RO-JEK', 'Rp 700.000', '35 pesanan selesai'),
+              ],
+            ),
           ),
         ),
+      );
+    }
+
+    Widget _buildLegendItem(Color color, String name, String percent) {
+      return Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(name, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const Spacer(),
+          Text(percent, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
+        ],
       );
     }
 
@@ -1669,83 +1751,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     void _showKaryawanOpsBottomSheet(BuildContext context) {
-      final ops = [
-        {'task': 'Penjemputan Ojek Gubeng', 'time': '13:00 WIB', 'status': 'Menuju Lokasi', 'color': AppColors.primary},
-        {'task': 'Pemeriksaan Unit Avanza', 'time': '14:30 WIB', 'status': 'Selesai', 'color': AppColors.success},
-        {'task': 'Pengembalian Vario 160', 'time': '16:00 WIB', 'status': 'Belum Selesai', 'color': AppColors.accent},
+      final List<Map<String, dynamic>> opsList = [
+        {'id': 1, 'task': 'Penjemputan Ojek Gubeng', 'time': '13:00 WIB', 'status': 'Menuju Lokasi', 'color': AppColors.primary},
+        {'id': 2, 'task': 'Pemeriksaan Unit Avanza', 'time': '14:30 WIB', 'status': 'Selesai', 'color': AppColors.success},
+        {'id': 3, 'task': 'Pengembalian Vario 160', 'time': '16:00 WIB', 'status': 'Belum Selesai', 'color': AppColors.accent},
+        {'id': 4, 'task': 'Pemberian Helm & Jas Hujan', 'time': '17:15 WIB', 'status': 'Belum Selesai', 'color': AppColors.accent},
       ];
 
       showModalBottomSheet(
         context: context,
         backgroundColor: Colors.transparent,
         isScrollControlled: true,
-        builder: (ctx) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(24),
-          height: MediaQuery.of(ctx).size.height * 0.6,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+        builder: (ctx) => StatefulBuilder(
+          builder: (context, setSheetState) => Container(
+            decoration: const BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.all(24),
+            height: MediaQuery.of(ctx).size.height * 0.7,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Portal Tugas Operasional Karyawan',
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Monitoring status unit sewa, pengembalian kendaraan, dan penjemputan ojek.',
-                style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: ops.length,
-                  itemBuilder: (context, idx) {
-                    final task = ops[idx];
-                    final color = task['color'] as Color;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.divider),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(task['task'] as String, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 2),
-                              Text('Jadwal: ${task['time']}', style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMuted)),
-                            ],
+                          Text(
+                            'Portal Tugas Operasional Karyawan',
+                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                            child: Text(
-                              task['status'] as String,
-                              style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w800, color: color),
-                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Monitoring status unit sewa, pengembalian kendaraan, dan penjemputan ojek.',
+                            style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: opsList.length,
+                    itemBuilder: (context, idx) {
+                      final task = opsList[idx];
+                      final color = task['color'] as Color;
+                      final status = task['status'] as String;
+                      final isSelesai = status == 'Selesai';
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task['task'] as String,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      decoration: isSelesai ? TextDecoration.lineThrough : null,
+                                      color: isSelesai ? AppColors.textMuted : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text('Jadwal: ${task['time']}', style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMuted)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Bounceable(
+                              onTap: () {
+                                setSheetState(() {
+                                  if (status == 'Belum Selesai') {
+                                    task['status'] = 'Menuju Lokasi';
+                                    task['color'] = AppColors.primary;
+                                  } else if (status == 'Menuju Lokasi') {
+                                    task['status'] = 'Selesai';
+                                    task['color'] = AppColors.success;
+                                  } else {
+                                    task['status'] = 'Belum Selesai';
+                                    task['color'] = AppColors.accent;
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: color.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: color.withOpacity(0.3), width: 1),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      status,
+                                      style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w800, color: color),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.sync_rounded, size: 10, color: color),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
