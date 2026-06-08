@@ -54,12 +54,12 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo v2.png"
+  image_path: "assets/images/logo_v2_launcher.png"
   adaptive_icon_background: "#FAF6F1"
-  adaptive_icon_foreground: "assets/images/logo v2.png"
+  adaptive_icon_foreground: "assets/images/logo_v2_launcher.png"
   web:
     generate: true
-    image_path: "assets/images/logo v2.png"
+    image_path: "assets/images/logo_v2_launcher.png"
 
 
 
