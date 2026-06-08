@@ -9,6 +9,7 @@ import '../../providers/rental_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/bookmark_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../widgets/common/bounceable.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
