@@ -98,5 +98,19 @@ class TerminalData {
       ],
       foodRec: ItineraryFood(name: 'Lontong Kupang Kenjeran', image: 'assets/images/lontong-kupang.jpeg', price: 20000, area: 'Pesisir Kenjeran'),
     ),
+    TerminalModel(
+      id: 'custom_hotel',
+      name: 'Hotel / Lokasi Saya',
+      icon: '🏨',
+      transport: ['Ojek Online', 'Taksi', 'Kendaraan Sewa'],
+      lat: -7.2639,
+      lng: 112.7421,
+      spots: [
+        ItinerarySpot(id: 'tunjungan', name: 'Jalan Tunjungan', image: 'assets/images/jalan tunjungan.JPG.jpeg', timeLabel: '09:00', duration: '60 menit', ticketPrice: 0, distance: '1.0 km', category: 'Heritage'),
+        ItinerarySpot(id: 'alun-alun', name: 'Alun-Alun Surabaya', image: 'assets/images/alun alun surabaya.JPG.jpeg', timeLabel: '10:30', duration: '60 menit', ticketPrice: 0, distance: '0.8 km', category: 'Heritage'),
+        ItinerarySpot(id: 'museum-balai-pemuda', name: 'Museum Bawah Tanah Balai Pemuda', image: 'assets/images/Museum Bawah Tanah Balai Pemuda Surabaya.png', timeLabel: '13:00', duration: '60 menit', ticketPrice: 0, distance: '0.2 km', category: 'Heritage'),
+      ],
+      foodRec: ItineraryFood(name: 'Sate Klopo Ondomohen', image: 'assets/images/rawon.jpeg', price: 28000, area: 'Dekat Balaikota'),
+    ),
   ];
 }

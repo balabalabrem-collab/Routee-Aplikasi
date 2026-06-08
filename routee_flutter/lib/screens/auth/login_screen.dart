@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final language = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -58,7 +60,34 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              // Language Selector Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      language.setLanguage(language.currentLanguage == 'Bahasa Indonesia' ? 'English' : 'Bahasa Indonesia');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.divider),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)],
+                      ),
+                      child: Row(
+                        children: [
+                          Text(language.currentLanguage == 'Bahasa Indonesia' ? '🇮🇩 ID' : '🇬🇧 EN', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.translate_rounded, size: 12, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
 
               // Logo
               SizedBox(
@@ -87,9 +116,15 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 40),
 
               // Title
-              Text('Masuk ke Akunmu', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              Text(
+                language.translateText(id: 'Masuk ke Akunmu', en: 'Log in to your account'),
+                style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              ),
               const SizedBox(height: 8),
-              Text('Akses fitur sewa transportasi dan lainnya', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+              Text(
+                language.translateText(id: 'Akses fitur sewa transportasi dan lainnya', en: 'Access transport rentals and other features'),
+                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+              ),
 
               const SizedBox(height: 32),
 
@@ -107,7 +142,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const Icon(Icons.error_outline, color: AppColors.error, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_errorMessage!, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.error))),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: GoogleFonts.poppins(fontSize: 12, color: AppColors.error),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -129,8 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelStyle: GoogleFonts.poppins(fontSize: 13),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Email harus diisi';
-                        if (!v.contains('@')) return 'Email tidak valid';
+                        if (v == null || v.isEmpty) {
+                          return language.translateText(id: 'Email harus diisi', en: 'Email is required');
+                        }
+                        if (!v.contains('@')) {
+                          return language.translateText(id: 'Email tidak valid', en: 'Invalid email format');
+                        }
                         return null;
                       },
                     ),
@@ -149,8 +193,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Password harus diisi';
-                        if (v.length < 6) return 'Password minimal 6 karakter';
+                        if (v == null || v.isEmpty) {
+                          return language.translateText(id: 'Password harus diisi', en: 'Password is required');
+                        }
+                        if (v.length < 6) {
+                          return language.translateText(id: 'Password minimal 6 karakter', en: 'Password must be at least 6 characters');
+                        }
                         return null;
                       },
                     ),
@@ -160,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: GestureDetector(
                         onTap: () => _showForgotPasswordDialog(context),
                         child: Text(
-                          'Lupa Password?',
+                          language.translateText(id: 'Lupa Password?', en: 'Forgot Password?'),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -189,7 +237,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: auth.isLoading
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text('Masuk', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600)),
+                      : Text(
+                          language.translateText(id: 'Masuk', en: 'Log In'),
+                          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
 
@@ -206,7 +257,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     side: const BorderSide(color: AppColors.divider, width: 1.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('Masuk Tanpa Akun (Mode Tamu)', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    language.translateText(id: 'Masuk Tanpa Akun (Mode Tamu)', en: 'Enter without Account (Guest Mode)'),
+                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
 
@@ -229,14 +283,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 16),
                         const SizedBox(width: 6),
                         Text(
-                          'Info Akun Demo Uji Coba:',
+                          language.translateText(id: 'Info Akun Demo Uji Coba:', en: 'Demo Accounts Info:'),
                           style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '• Admin: admin@routee.id (Sandi: adminRoutee2026)\n• Karyawan: karyawan@routee.id (Sandi: staffRoutee2026)',
+                      language.translateText(
+                        id: '• Admin: admin@routee.id (Sandi: adminRoutee2026)\n• Karyawan: karyawan@routee.id (Sandi: staffRoutee2026)',
+                        en: '• Admin: admin@routee.id (Pass: adminRoutee2026)\n• Staff: karyawan@routee.id (Pass: staffRoutee2026)',
+                      ),
                       style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textPrimary, height: 1.4),
                     ),
                   ],
@@ -249,7 +306,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Belum punya akun? ', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+                  Text(
+                    language.translateText(id: 'Belum punya akun? ', en: 'Don\'t have an account? '),
+                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+                  ),
                   GestureDetector(
                     onTap: () {
                       showDialog(
@@ -257,22 +317,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         builder: (ctx) => AlertDialog(
                           backgroundColor: AppColors.background,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          title: Text('Simulasi Pendaftaran', style: GoogleFonts.poppins(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16)),
+                          title: Text(
+                            language.translateText(id: 'Simulasi Pendaftaran', en: 'Register Simulation'),
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16),
+                          ),
                           content: Text(
-                            'Pendaftaran akun baru saat ini berada dalam mode simulasi pengembangan lokal. Silakan masuk menggunakan Akun Demo Uji Coba yang tersedia di halaman utama untuk menguji fitur penuh.',
+                            language.translateText(
+                              id: 'Pendaftaran akun baru saat ini berada dalam mode simulasi pengembangan lokal. Silakan masuk menggunakan Akun Demo Uji Coba yang tersedia di halaman utama untuk menguji fitur penuh.',
+                              en: 'New account registration is currently in local development simulation. Please log in using the Demo Accounts on the main page to test all features.',
+                            ),
                             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
                           ),
                           actions: [
                             ElevatedButton(
                               onPressed: () => Navigator.pop(ctx),
                               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                              child: Text('Mengerti', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                              child: Text(
+                                language.translateText(id: 'Mengerti', en: 'Got it'),
+                                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                              ),
                             )
                           ],
                         ),
                       );
                     },
-                    child: Text('Daftar Sekarang', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    child: Text(
+                      language.translateText(id: 'Daftar Sekarang', en: 'Register Now'),
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
                   ),
                 ],
               ),

@@ -126,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
                       const SizedBox(width: 4),
-                      Text('Online', style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70)),
+                      Text('Driver RO-JEK • Online', style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70)),
                       if (_driver != null) ...[
                         const SizedBox(width: 8),
                         const Icon(Icons.star_rounded, size: 11, color: AppColors.accent),

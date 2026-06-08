@@ -252,6 +252,28 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Simulation Disclaimer Banner
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.info_outline_rounded, size: 12, color: AppColors.accent),
+                          const SizedBox(width: 6),
+                          Text(
+                            '[Simulasi] Driver sedang bergerak secara berkala menuju lokasi Anda.',
+                            style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // ETA and distance
                     Row(
                       children: [
