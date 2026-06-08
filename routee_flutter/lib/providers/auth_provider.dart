@@ -43,27 +43,42 @@ class AuthProvider extends ChangeNotifier {
         for (var u in decoded) {
           _registeredUsers.add(Map<String, String>.from(u));
         }
-        // Ensure default accounts exist if missing
-        if (!_registeredUsers.any((u) => u['email'] == 'admin@routee.id')) {
-          _registeredUsers.add({
-            'email': 'admin@routee.id',
-            'password': 'adminRoutee2026',
-            'name': 'Administrator Routee',
-            'phone': '081122334455',
-            'role': 'admin',
-          });
-        }
-        if (!_registeredUsers.any((u) => u['email'] == 'karyawan@routee.id')) {
-          _registeredUsers.add({
-            'email': 'karyawan@routee.id',
-            'password': 'staffRoutee2026',
-            'name': 'Budi Setiawan (Staff Operational)',
-            'phone': '085566778899',
-            'role': 'karyawan',
-          });
-        }
-        notifyListeners();
       }
+      // Ensure default accounts exist if missing
+      if (!_registeredUsers.any((u) => u['email'] == 'admin@routee.id')) {
+        _registeredUsers.add({
+          'email': 'admin@routee.id',
+          'password': 'adminRoutee2026',
+          'name': 'Administrator Routee',
+          'phone': '081122334455',
+          'role': 'admin',
+        });
+      }
+      if (!_registeredUsers.any((u) => u['email'] == 'karyawan@routee.id')) {
+        _registeredUsers.add({
+          'email': 'karyawan@routee.id',
+          'password': 'staffRoutee2026',
+          'name': 'Budi Setiawan (Staff Operational)',
+          'phone': '085566778899',
+          'role': 'karyawan',
+        });
+      }
+
+      // Load active session
+      final sessionJson = prefs.getString('active_user_session');
+      if (sessionJson != null) {
+        final decoded = jsonDecode(sessionJson);
+        _currentUser = UserModel(
+          id: decoded['id'] ?? '',
+          name: decoded['name'] ?? '',
+          email: decoded['email'] ?? '',
+          phone: decoded['phone'] ?? '',
+          role: decoded['role'] ?? 'user',
+          avatarUrl: decoded['avatarUrl'] ?? '',
+          createdAt: DateTime.tryParse(decoded['createdAt'] ?? '') ?? DateTime.now(),
+        );
+      }
+      notifyListeners();
     } catch (e) {
       debugPrint('Error loading users from prefs: $e');
     }
@@ -76,6 +91,28 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString('registered_users', usersJson);
     } catch (e) {
       debugPrint('Error saving users to prefs: $e');
+    }
+  }
+
+  Future<void> _saveSessionToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_currentUser == null) {
+        await prefs.remove('active_user_session');
+      } else {
+        final sessionMap = {
+          'id': _currentUser!.id,
+          'name': _currentUser!.name,
+          'email': _currentUser!.email,
+          'phone': _currentUser!.phone,
+          'role': _currentUser!.role,
+          'avatarUrl': _currentUser!.avatarUrl,
+          'createdAt': _currentUser!.createdAt.toIso8601String(),
+        };
+        await prefs.setString('active_user_session', jsonEncode(sessionMap));
+      }
+    } catch (e) {
+      debugPrint('Error saving session to prefs: $e');
     }
   }
 
@@ -100,6 +137,7 @@ class AuthProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
       );
 
+      await _saveSessionToPrefs();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -149,6 +187,7 @@ class AuthProvider extends ChangeNotifier {
       role: 'user',
       createdAt: DateTime.now(),
     );
+    await _saveSessionToPrefs();
 
     _isLoading = false;
     notifyListeners();
@@ -172,6 +211,7 @@ class AuthProvider extends ChangeNotifier {
         createdAt: _currentUser!.createdAt,
       );
       _saveUsersToPrefs();
+      _saveSessionToPrefs();
       notifyListeners();
     }
   }
@@ -247,6 +287,7 @@ class AuthProvider extends ChangeNotifier {
 
   void logout() {
     _currentUser = null;
+    _saveSessionToPrefs();
     notifyListeners();
   }
 }
