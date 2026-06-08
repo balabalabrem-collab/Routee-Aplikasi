@@ -88,7 +88,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final user = _registeredUsers.firstWhere(
-        (u) => u['email'] == email && u['password'] == password,
+        (u) => u['email']?.toLowerCase() == email.toLowerCase() && u['password'] == password,
       );
 
       _currentUser = UserModel(
@@ -123,7 +123,7 @@ class AuthProvider extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 1000));
 
     // Check if email already exists
-    final exists = _registeredUsers.any((u) => u['email'] == email);
+    final exists = _registeredUsers.any((u) => u['email']?.toLowerCase() == email.toLowerCase());
     if (exists) {
       _isLoading = false;
       notifyListeners();
@@ -199,7 +199,7 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String password,
   }) {
-    final exists = _registeredUsers.any((u) => u['email'] == email);
+    final exists = _registeredUsers.any((u) => u['email']?.toLowerCase() == email.toLowerCase());
     if (exists) return false;
 
     _registeredUsers.add({
@@ -221,12 +221,12 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String password,
   }) {
-    if (originalEmail != email) {
-      final exists = _registeredUsers.any((u) => u['email'] == email);
+    if (originalEmail.toLowerCase() != email.toLowerCase()) {
+      final exists = _registeredUsers.any((u) => u['email']?.toLowerCase() == email.toLowerCase());
       if (exists) return false;
     }
 
-    final idx = _registeredUsers.indexWhere((u) => u['email'] == originalEmail);
+    final idx = _registeredUsers.indexWhere((u) => u['email']?.toLowerCase() == originalEmail.toLowerCase());
     if (idx != -1) {
       _registeredUsers[idx]['name'] = name;
       _registeredUsers[idx]['email'] = email;
