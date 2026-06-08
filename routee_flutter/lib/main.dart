@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app.dart';
 import 'providers/trip_provider.dart';
 import 'providers/explore_provider.dart';
@@ -14,6 +15,9 @@ import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Disable runtime fetching of fonts via HTTP
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Init notification service
   await NotificationService().init();
