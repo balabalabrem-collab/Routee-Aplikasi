@@ -212,13 +212,66 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 16),
 
+              // Demo Accounts Info Box
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Info Akun Demo Uji Coba:',
+                          style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '• Admin: admin@routee.id (Sandi: adminRoutee2026)\n• Karyawan: karyawan@routee.id (Sandi: staffRoutee2026)',
+                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textPrimary, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('Belum punya akun? ', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
                   GestureDetector(
-                    onTap: () => context.go('/register'),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: AppColors.background,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          title: Text('Simulasi Pendaftaran', style: GoogleFonts.poppins(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16)),
+                          content: Text(
+                            'Pendaftaran akun baru saat ini berada dalam mode simulasi pengembangan lokal. Silakan masuk menggunakan Akun Demo Uji Coba yang tersedia di halaman utama untuk menguji fitur penuh.',
+                            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                              child: Text('Mengerti', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                            )
+                          ],
+                        ),
+                      );
+                    },
                     child: Text('Daftar Sekarang', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
                   ),
                 ],
@@ -317,13 +370,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 24),
               const SizedBox(width: 8),
               Text(
-                'Email Terkirim',
+                '[Simulasi] Email Terkirim',
                 style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ],
           ),
           content: Text(
-            'Tautan untuk mereset kata sandi Anda telah dikirimkan ke $email. Silakan periksa folder kotak masuk atau spam email Anda.',
+            'Tautan untuk mereset kata sandi Anda telah dikirimkan secara simulasi ke $email.\n\nCatatan: Karena ini adalah versi demo lokal, tidak ada email fisik yang dikirimkan.',
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
           ),
           actions: [

@@ -1232,9 +1232,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Ringkasan arus kas, pendapatan sewa, dan komisi ojek online.',
-                  style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Ringkasan arus kas, pendapatan sewa, dan komisi ojek online.',
+                        style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Text(
+                        'Juni 2026 (Bulan Ini)',
+                        style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 // Total Revenue Card
@@ -1838,6 +1857,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text('Jadwal: ${task['time']}', style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMuted)),
+                                  if (!isSelesai) ...[
+                                    const SizedBox(height: 6),
+                                    GestureDetector(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Membuka rute ke lokasi ${task['task']} di Google Maps...',
+                                              style: GoogleFonts.poppins(fontSize: 11),
+                                            ),
+                                            backgroundColor: AppColors.primary,
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.map_rounded, size: 12, color: AppColors.primary),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Buka Google Maps',
+                                            style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

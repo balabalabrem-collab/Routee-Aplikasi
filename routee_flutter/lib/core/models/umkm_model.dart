@@ -6,6 +6,7 @@ class UmkmModel {
   final String seller;
   final double rating;
   final String category;
+  final String phone;
 
   const UmkmModel({
     required this.id,
@@ -15,5 +16,6 @@ class UmkmModel {
     required this.seller,
     required this.rating,
     required this.category,
+    required this.phone,
   });
 }

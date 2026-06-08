@@ -128,6 +128,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
+          // Warning Banner
+          if (_currentStep < 3)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Mode Uji Coba: Transaksi ini bersifat simulasi lokal dan tidak memotong saldo riil Anda.',
+                      style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Content
           Expanded(
             child: _currentStep == 0

@@ -27,6 +27,7 @@ class _RentalScreenState extends State<RentalScreen> {
   int _selectedTab = 0; // 0: Sewa Motor/Mobil, 1: RO-JEK Ojek Online
   final _formatter = NumberFormat('#,###', 'id_ID');
 
+  String _deliverySpot = 'Stasiun Gubeng (Pusat)';
   String _ojekStart = 'Stasiun Gubeng';
   late String _ojekDest1;
   late String _ojekDest2;
@@ -194,6 +195,43 @@ class _RentalScreenState extends State<RentalScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Delivery Location Selector
+        Text(
+          language.translateText(id: 'Pilihan Titik Serah Terima Kendaraan', en: 'Delivery / Pickup Point Options'),
+          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _deliverySpot,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+              dropdownColor: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+              items: [
+                'Stasiun Gubeng (Pusat - Gratis)',
+                'Stasiun Pasar Turi (+Rp 15.000)',
+                'Bandara Juanda (+Rp 50.000)',
+                'Hotel / Alamat Kustom (+Rp 20.000)',
+              ].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
+              onChanged: (newVal) {
+                if (newVal != null) {
+                  setState(() => _deliverySpot = newVal);
+                }
+              },
+            ),
           ),
         ),
         const SizedBox(height: 20),
