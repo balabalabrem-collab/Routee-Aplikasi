@@ -251,7 +251,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton(
-                  onPressed: auth.isLoading ? null : () => context.go('/'),
+                  onPressed: auth.isLoading
+                      ? null
+                      : () {
+                          auth.logout();
+                          context.go('/');
+                        },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
                     side: const BorderSide(color: AppColors.divider, width: 1.5),
@@ -311,36 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          backgroundColor: AppColors.background,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          title: Text(
-                            language.translateText(id: 'Simulasi Pendaftaran', en: 'Register Simulation'),
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16),
-                          ),
-                          content: Text(
-                            language.translateText(
-                              id: 'Pendaftaran akun baru saat ini berada dalam mode simulasi pengembangan lokal. Silakan masuk menggunakan Akun Demo Uji Coba yang tersedia di halaman utama untuk menguji fitur penuh.',
-                              en: 'New account registration is currently in local development simulation. Please log in using the Demo Accounts on the main page to test all features.',
-                            ),
-                            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-                          ),
-                          actions: [
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                              child: Text(
-                                language.translateText(id: 'Mengerti', en: 'Got it'),
-                                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-                    },
+                    onTap: () => context.go('/register'),
                     child: Text(
                       language.translateText(id: 'Daftar Sekarang', en: 'Register Now'),
                       style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
@@ -357,80 +333,305 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog(BuildContext context) {
+    final language = context.read<LanguageProvider>();
+    final auth = context.read<AuthProvider>();
+
     final emailCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
+    final otpCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confPassCtrl = TextEditingController();
+
+    final formKey1 = GlobalKey<FormState>();
+    final formKey2 = GlobalKey<FormState>();
+    final formKey3 = GlobalKey<FormState>();
+
+    int currentStep = 1; // 1: Email, 2: OTP, 3: New Password
+    String? localError;
+    String targetEmail = '';
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: AppColors.background,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(
-            'Lupa Password?',
-            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
-          ),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Masukkan alamat email terdaftar Anda. Kami akan mengirimkan tautan reset kata sandi.',
-                  style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Alamat Email',
-                    hintText: 'contoh@email.com',
-                    prefixIcon: const Icon(Icons.email_outlined, size: 20),
-                    labelStyle: GoogleFonts.poppins(fontSize: 13),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.background,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Icon(
+                    currentStep == 1
+                        ? Icons.email_outlined
+                        : currentStep == 2
+                            ? Icons.security_rounded
+                            : Icons.lock_reset_rounded,
+                    color: AppColors.primary,
+                    size: 24,
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email harus diisi';
-                    if (!v.contains('@') || !v.contains('.')) return 'Format email tidak valid';
-                    return null;
+                  const SizedBox(width: 8),
+                  Text(
+                    currentStep == 1
+                        ? language.translateText(id: 'Lupa Password?', en: 'Forgot Password?')
+                        : currentStep == 2
+                            ? language.translateText(id: 'Verifikasi Kode', en: 'Verify Code')
+                            : language.translateText(id: 'Password Baru', en: 'New Password'),
+                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (localError != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.error.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          localError!,
+                          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.error),
+                        ),
+                      ),
+                    ],
+
+                    // Step 1: Input Email
+                    if (currentStep == 1)
+                      Form(
+                        key: formKey1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              language.translateText(
+                                id: 'Masukkan alamat email Anda yang terdaftar pada sistem Routee.',
+                                en: 'Enter your email address registered with the Routee system.',
+                              ),
+                              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: emailCtrl,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                hintText: 'contoh@email.com',
+                                prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return language.translateText(id: 'Email harus diisi', en: 'Email is required');
+                                }
+                                if (!v.contains('@') || !v.contains('.')) {
+                                  return language.translateText(id: 'Format email tidak valid', en: 'Invalid email format');
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Step 2: Verification Code OTP
+                    if (currentStep == 2)
+                      Form(
+                        key: formKey2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              language.translateText(
+                                id: 'Kami mensimulasikan pengiriman kode verifikasi 4-digit ke $targetEmail.',
+                                en: 'We simulated sending a 4-digit verification code to $targetEmail.',
+                              ),
+                              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySurface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline, size: 14, color: AppColors.primary),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      language.translateText(
+                                        id: 'Gunakan kode demo: 1234',
+                                        en: 'Use demo code: 1234',
+                                      ),
+                                      style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: otpCtrl,
+                              keyboardType: TextInputType.number,
+                              maxLength: 4,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 8),
+                              decoration: InputDecoration(
+                                labelText: language.translateText(id: 'Kode OTP', en: 'OTP Code'),
+                                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                                counterText: '',
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return language.translateText(id: 'Kode verifikasi harus diisi', en: 'Verification code is required');
+                                }
+                                if (v != '1234') {
+                                  return language.translateText(id: 'Kode verifikasi tidak sesuai', en: 'Incorrect verification code');
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Step 3: New Password
+                    if (currentStep == 3)
+                      Form(
+                        key: formKey3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              language.translateText(
+                                id: 'Buat kata sandi baru untuk akun Anda.',
+                                en: 'Create a new password for your account.',
+                              ),
+                              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: newPassCtrl,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                labelText: language.translateText(id: 'Kata Sandi Baru', en: 'New Password'),
+                                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                                prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return language.translateText(id: 'Password harus diisi', en: 'Password is required');
+                                }
+                                if (v.length < 6) {
+                                  return language.translateText(id: 'Password minimal 6 karakter', en: 'Password must be at least 6 characters');
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: confPassCtrl,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                labelText: language.translateText(id: 'Konfirmasi Sandi', en: 'Confirm Password'),
+                                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                                prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                              ),
+                              validator: (v) {
+                                if (v != newPassCtrl.text) {
+                                  return language.translateText(id: 'Password tidak cocok', en: 'Passwords do not match');
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    language.translateText(id: 'Batal', en: 'Cancel'),
+                    style: GoogleFonts.poppins(color: AppColors.textMuted, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() => localError = null);
+                    if (currentStep == 1) {
+                      if (formKey1.currentState!.validate()) {
+                        final email = emailCtrl.text.trim();
+                        if (auth.userExists(email)) {
+                          setState(() {
+                            targetEmail = email;
+                            currentStep = 2;
+                          });
+                        } else {
+                          setState(() {
+                            localError = language.translateText(
+                              id: 'Email tidak terdaftar dalam sistem Routee',
+                              en: 'Email is not registered in Routee system',
+                            );
+                          });
+                        }
+                      }
+                    } else if (currentStep == 2) {
+                      if (formKey2.currentState!.validate()) {
+                        setState(() {
+                          currentStep = 3;
+                        });
+                      }
+                    } else if (currentStep == 3) {
+                      if (formKey3.currentState!.validate()) {
+                        final success = auth.resetPassword(targetEmail, newPassCtrl.text);
+                        if (success) {
+                          Navigator.pop(ctx);
+                          _showResetSuccessDialog(context, targetEmail);
+                        } else {
+                          setState(() {
+                            localError = language.translateText(
+                              id: 'Gagal mengatur ulang kata sandi. Silakan coba lagi.',
+                              en: 'Failed to reset password. Please try again.',
+                            );
+                          });
+                        }
+                      }
+                    }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text(
+                    currentStep == 3
+                        ? language.translateText(id: 'Simpan', en: 'Save')
+                        : language.translateText(id: 'Lanjutkan', en: 'Continue'),
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Batal',
-                style: GoogleFonts.poppins(color: AppColors.textMuted, fontWeight: FontWeight.w600),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  Navigator.pop(ctx);
-                  _showResetSuccessDialog(context, emailCtrl.text.trim());
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: Text(
-                'Kirim Link',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
 
   void _showResetSuccessDialog(BuildContext context, String email) {
+    final language = context.read<LanguageProvider>();
     showDialog(
       context: context,
       builder: (ctx) {
@@ -442,13 +643,16 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 24),
               const SizedBox(width: 8),
               Text(
-                '[Simulasi] Email Terkirim',
+                language.translateText(id: 'Password Diperbarui', en: 'Password Updated'),
                 style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ],
           ),
           content: Text(
-            'Tautan untuk mereset kata sandi Anda telah dikirimkan secara simulasi ke $email.\n\nCatatan: Karena ini adalah versi demo lokal, tidak ada email fisik yang dikirimkan.',
+            language.translateText(
+              id: 'Kata sandi untuk $email berhasil diubah secara lokal. Silakan masuk kembali dengan password baru Anda.',
+              en: 'Password for $email has been successfully updated locally. Please log in with your new password.',
+            ),
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
           ),
           actions: [
@@ -460,7 +664,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: Text(
-                'Mengerti',
+                language.translateText(id: 'Mengerti', en: 'Got it'),
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
             ),

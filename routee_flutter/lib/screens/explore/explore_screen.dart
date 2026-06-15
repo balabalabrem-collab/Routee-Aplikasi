@@ -303,7 +303,17 @@ class _DestinationListCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: AppColors.accentSurface, borderRadius: BorderRadius.circular(6)),
-                          child: Text('★ ${destination.rating}', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.star_rounded, color: AppColors.accent, size: 11),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${destination.rating}',
+                                style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accent),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -458,7 +468,17 @@ class _CulinaryListCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(child: Text(culinary.name, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      Text('★ ${culinary.rating}', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, color: AppColors.accent, size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${culinary.rating}',
+                            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 3),
@@ -742,7 +762,17 @@ class _UmkmGridCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
-                    child: Text('★ ${product.rating}', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.accentLight)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, color: AppColors.accent, size: 10),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${product.rating}',
+                          style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.accentLight),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

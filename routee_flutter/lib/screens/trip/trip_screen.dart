@@ -439,6 +439,12 @@ class _ItineraryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final language = context.watch<LanguageProvider>();
+    final trip = context.watch<TripProvider>();
+    final isNavigating = trip.isNavigating;
+    final totalSpots = itinerary.spots.length;
+    final visitedCount = trip.visitedSpots.length;
+    final progress = totalSpots > 0 ? visitedCount / totalSpots : 0.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -463,6 +469,46 @@ class _ItineraryView extends StatelessWidget {
               ),
             ],
           ),
+
+          if (isNavigating) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        language.localeCode == 'en' ? '🚀 Trip Progress' : '🚀 Progres Perjalanan',
+                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                      ),
+                      Text(
+                        '${(progress * 100).toInt()}% ${language.localeCode == 'en' ? 'Completed' : 'Selesai'} ($visitedCount/$totalSpots)',
+                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.white,
+                      color: AppColors.primary,
+                      minHeight: 8,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           const SizedBox(height: 16),
 
@@ -672,6 +718,10 @@ class _TimelineItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trip = context.watch<TripProvider>();
+    final isNavigating = trip.isNavigating;
+    final isVisited = trip.visitedSpots.contains(index);
+
     Color catColor;
     switch (spot.category) {
       case 'Heritage': catColor = AppColors.heritageFg; break;
@@ -694,14 +744,34 @@ class _TimelineItem extends StatelessWidget {
               ],
             ),
           ),
-          // Dot + line
+          // Dot + line (Checkbox when navigating)
           Column(
             children: [
-              Container(
-                width: 16, height: 16,
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: Center(
-                  child: Text('${index + 1}', style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white)),
+              GestureDetector(
+                onTap: isNavigating ? () => trip.toggleSpotVisited(index) : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: isNavigating ? 22 : 16,
+                  height: isNavigating ? 22 : 16,
+                  decoration: BoxDecoration(
+                    color: isNavigating
+                        ? (isVisited ? AppColors.success : Colors.white)
+                        : AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: isNavigating && !isVisited
+                        ? Border.all(color: AppColors.primary, width: 2)
+                        : null,
+                    boxShadow: isNavigating
+                        ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
+                        : null,
+                  ),
+                  child: Center(
+                    child: isNavigating
+                        ? (isVisited
+                            ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                            : Text('${index + 1}', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.primary)))
+                        : Text('${index + 1}', style: GoogleFonts.poppins(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
                 ),
               ),
               if (!isLast) Container(width: 2, height: 80, color: AppColors.primarySurface),
@@ -712,51 +782,68 @@ class _TimelineItem extends StatelessWidget {
           Expanded(
             child: Bounceable(
               onTap: () => context.push('/detail/${spot.id}'),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 8, offset: const Offset(0, 3))],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 80, height: 80,
-                      child: Image.asset(spot.image, fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => Container(color: AppColors.surfaceVariant)),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(color: catColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                              child: Text('Stop ${index + 1}', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: catColor)),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(spot.name, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                _SmallTag('⏱ ${spot.duration}'),
-                                const SizedBox(width: 4),
-                                _SmallTag(spot.ticketPrice == 0 ? '🎟 Gratis' : '🎟 Rp ${NumberFormat('#,###', 'id_ID').format(spot.ticketPrice)}'),
-                              ],
-                            ),
-                          ],
+              child: Opacity(
+                opacity: isVisited ? 0.65 : 1.0,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: isVisited ? Border.all(color: AppColors.divider, width: 1) : null,
+                    boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 8, offset: const Offset(0, 3))],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 80, height: 80,
+                        child: Image.asset(spot.image, fit: BoxFit.cover,
+                          errorBuilder: (c, e, s) => Container(color: AppColors.surfaceVariant)),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: catColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                    child: Text('Stop ${index + 1}', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: catColor)),
+                                  ),
+                                  if (isVisited)
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.check_circle_rounded, size: 12, color: AppColors.success),
+                                        const SizedBox(width: 3),
+                                        Text('Selesai', style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.success)),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(spot.name, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  _SmallTag('⏱ ${spot.duration}'),
+                                  const SizedBox(width: 4),
+                                  _SmallTag(spot.ticketPrice == 0 ? '🎟 Gratis' : '🎟 Rp ${NumberFormat('#,###', 'id_ID').format(spot.ticketPrice)}'),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-                    ),
-                  ],
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

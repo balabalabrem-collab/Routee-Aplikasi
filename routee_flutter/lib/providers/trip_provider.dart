@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/data/terminal_data.dart';
 import '../core/data/destinations_data.dart';
 import '../core/models/itinerary_model.dart';
@@ -21,6 +23,13 @@ class TripProvider extends ChangeNotifier {
   int _activeSpotIndex = 0;
   final Set<int> _visitedSpots = {};
 
+  // Preferences
+  List<String> _preferredCategories = ['Heritage', 'Religi', 'Kuliner', 'UMKM'];
+
+  TripProvider() {
+    _loadFromPrefs();
+  }
+
   // Getters
   String get selectedTerminalId => _selectedTerminalId;
   int get selectedHours => _selectedHours;
@@ -31,6 +40,7 @@ class TripProvider extends ChangeNotifier {
   bool get isNavigating => _isNavigating;
   int get activeSpotIndex => _activeSpotIndex;
   Set<int> get visitedSpots => Set.unmodifiable(_visitedSpots);
+  List<String> get preferredCategories => _preferredCategories;
 
   ItinerarySpot? get activeSpot {
     if (_currentItinerary == null) return null;
@@ -46,10 +56,160 @@ class TripProvider extends ChangeNotifier {
   TerminalModel get selectedTerminal =>
       TerminalData.terminals.firstWhere((t) => t.id == _selectedTerminalId);
 
+  // Helper serialization methods
+  Map<String, dynamic> _itinerarySpotToMap(ItinerarySpot spot) {
+    return {
+      'id': spot.id,
+      'name': spot.name,
+      'image': spot.image,
+      'timeLabel': spot.timeLabel,
+      'duration': spot.duration,
+      'ticketPrice': spot.ticketPrice,
+      'distance': spot.distance,
+      'category': spot.category,
+    };
+  }
+
+  ItinerarySpot _itinerarySpotFromMap(Map<String, dynamic> map) {
+    return ItinerarySpot(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      image: map['image'] ?? '',
+      timeLabel: map['timeLabel'] ?? '',
+      duration: map['duration'] ?? '',
+      ticketPrice: map['ticketPrice'] ?? 0,
+      distance: map['distance'] ?? '',
+      category: map['category'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> _itineraryFoodToMap(ItineraryFood food) {
+    return {
+      'name': food.name,
+      'image': food.image,
+      'price': food.price,
+      'area': food.area,
+    };
+  }
+
+  ItineraryFood _itineraryFoodFromMap(Map<String, dynamic> map) {
+    return ItineraryFood(
+      name: map['name'] ?? '',
+      image: map['image'] ?? '',
+      price: map['price'] ?? 0,
+      area: map['area'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> _itineraryToMap(ItineraryModel it) {
+    return {
+      'terminalName': it.terminalName,
+      'hours': it.hours,
+      'spots': it.spots.map((s) => _itinerarySpotToMap(s)).toList(),
+      'food': _itineraryFoodToMap(it.food),
+      'transport': it.transport,
+    };
+  }
+
+  ItineraryModel _itineraryFromMap(Map<String, dynamic> map) {
+    return ItineraryModel(
+      terminalName: map['terminalName'] ?? '',
+      hours: map['hours'] ?? 8,
+      spots: (map['spots'] as List<dynamic>?)
+              ?.map((s) => _itinerarySpotFromMap(s as Map<String, dynamic>))
+              .toList() ??
+          [],
+      food: _itineraryFoodFromMap(map['food'] as Map<String, dynamic>),
+      transport: List<String>.from(map['transport'] ?? []),
+    );
+  }
+
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _selectedTerminalId = prefs.getString('trip_selected_terminal_id') ?? 'gubeng';
+      _selectedHours = prefs.getInt('trip_selected_hours') ?? 6;
+      _isCustomMode = prefs.getBool('trip_is_custom_mode') ?? false;
+      _isNavigating = prefs.getBool('trip_is_navigating') ?? false;
+      _activeSpotIndex = prefs.getInt('trip_active_spot_index') ?? 0;
+      _preferredCategories = prefs.getStringList('trip_preferred_categories') ?? ['Heritage', 'Religi', 'Kuliner', 'UMKM'];
+      
+      final visitedList = prefs.getStringList('trip_visited_spots') ?? [];
+      _visitedSpots.clear();
+      for (var str in visitedList) {
+        final val = int.tryParse(str);
+        if (val != null) _visitedSpots.add(val);
+      }
+
+      final customDestsJson = prefs.getString('trip_custom_selected_destinations');
+      _customSelectedDestinations.clear();
+      if (customDestsJson != null) {
+        final List<dynamic> list = jsonDecode(customDestsJson);
+        for (var item in list) {
+          final id = item['id'];
+          final dest = DestinationsData.destinations.firstWhere(
+            (d) => d.id == id,
+            orElse: () => null as dynamic,
+          );
+          if (dest != null) {
+            _customSelectedDestinations.add(dest);
+          }
+        }
+      }
+
+      final itineraryJson = prefs.getString('trip_current_itinerary');
+      if (itineraryJson != null) {
+        _currentItinerary = _itineraryFromMap(jsonDecode(itineraryJson));
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading trip prefs: $e');
+    }
+  }
+
+  Future<void> _saveToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('trip_selected_terminal_id', _selectedTerminalId);
+      await prefs.setInt('trip_selected_hours', _selectedHours);
+      await prefs.setBool('trip_is_custom_mode', _isCustomMode);
+      await prefs.setBool('trip_is_navigating', _isNavigating);
+      await prefs.setInt('trip_active_spot_index', _activeSpotIndex);
+      await prefs.setStringList('trip_visited_spots', _visitedSpots.map((v) => v.toString()).toList());
+      await prefs.setStringList('trip_preferred_categories', _preferredCategories);
+
+      final customList = _customSelectedDestinations.map((d) => {'id': d.id}).toList();
+      await prefs.setString('trip_custom_selected_destinations', jsonEncode(customList));
+
+      if (_currentItinerary == null) {
+        await prefs.remove('trip_current_itinerary');
+      } else {
+        await prefs.setString('trip_current_itinerary', jsonEncode(_itineraryToMap(_currentItinerary!)));
+      }
+    } catch (e) {
+      debugPrint('Error saving trip prefs: $e');
+    }
+  }
+
+  void togglePreferredCategory(String category) {
+    if (_preferredCategories.contains(category)) {
+      if (_preferredCategories.length > 1) {
+        _preferredCategories.remove(category);
+      }
+    } else {
+      _preferredCategories.add(category);
+    }
+    _currentItinerary = null;
+    _resetNavState();
+    _saveToPrefs();
+    notifyListeners();
+  }
+
   void selectTerminal(String id) {
     _selectedTerminalId = id;
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -57,6 +217,7 @@ class TripProvider extends ChangeNotifier {
     _selectedHours = hours;
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -64,11 +225,13 @@ class TripProvider extends ChangeNotifier {
     _isCustomMode = value;
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
   void setItinerary(ItineraryModel itinerary) {
     _currentItinerary = itinerary;
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -81,6 +244,7 @@ class TripProvider extends ChangeNotifier {
     }
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -92,6 +256,7 @@ class TripProvider extends ChangeNotifier {
     _customSelectedDestinations.insert(newIndex, item);
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -99,6 +264,7 @@ class TripProvider extends ChangeNotifier {
     _customSelectedDestinations.clear();
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -106,12 +272,14 @@ class TripProvider extends ChangeNotifier {
     _isNavigating = true;
     _activeSpotIndex = 0;
     _visitedSpots.clear();
+    _saveToPrefs();
     notifyListeners();
   }
 
   void stopNavigation() {
     _isNavigating = false;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -121,17 +289,39 @@ class TripProvider extends ChangeNotifier {
       for (int i = 0; i < _currentItinerary!.spots.length; i++) {
         if (!_visitedSpots.contains(i)) {
           _activeSpotIndex = i;
+          _saveToPrefs();
           notifyListeners();
           return;
         }
       }
       _activeSpotIndex = _currentItinerary!.spots.length;
     }
+    _saveToPrefs();
+    notifyListeners();
+  }
+
+  void toggleSpotVisited(int index) {
+    if (_visitedSpots.contains(index)) {
+      _visitedSpots.remove(index);
+    } else {
+      _visitedSpots.add(index);
+    }
+    if (_currentItinerary != null) {
+      _activeSpotIndex = _currentItinerary!.spots.length;
+      for (int i = 0; i < _currentItinerary!.spots.length; i++) {
+        if (!_visitedSpots.contains(i)) {
+          _activeSpotIndex = i;
+          break;
+        }
+      }
+    }
+    _saveToPrefs();
     notifyListeners();
   }
 
   void setActiveSpot(int index) {
     _activeSpotIndex = index;
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -144,6 +334,7 @@ class TripProvider extends ChangeNotifier {
   Future<void> generateItinerary() async {
     _isGenerating = true;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
 
     await Future.delayed(const Duration(milliseconds: 1800));
@@ -153,6 +344,7 @@ class TripProvider extends ChangeNotifier {
     if (_isCustomMode) {
       if (_customSelectedDestinations.isEmpty) {
         _isGenerating = false;
+        _saveToPrefs();
         notifyListeners();
         return;
       }
@@ -214,28 +406,38 @@ class TripProvider extends ChangeNotifier {
           orElse: () => DestinationModel(
             id: spot.id, name: spot.name, category: spot.category, image: spot.image,
             shortDesc: '', description: '', location: '', hours: '', ticket: '', duration: '',
-            rating: 4.5, lat: terminal.lat, lng: terminal.lng, // fallback to terminal
+            rating: 4.5, lat: terminal.lat, lng: terminal.lng,
           ),
         );
         return MapEntry(spot, dest);
       }).toList();
 
-      if (spotsWithCoords.isNotEmpty) {
-        // Pick a random starting spot as seed
-        final seedIndex = (DateTime.now().millisecondsSinceEpoch % spotsWithCoords.length).floor();
-        final seed = spotsWithCoords[seedIndex];
+      // Filter by preferred categories
+      List<MapEntry<ItinerarySpot, DestinationModel>> filteredSpots = spotsWithCoords;
+      if (_preferredCategories.isNotEmpty) {
+        filteredSpots = spotsWithCoords.where((entry) {
+          final cat = entry.value.category.toLowerCase();
+          return _preferredCategories.any((pref) => cat.contains(pref.toLowerCase()) || pref.toLowerCase().contains(cat));
+        }).toList();
+      }
 
-        // Sort all spots by distance to the seed spot
-        spotsWithCoords.sort((a, b) {
+      // If filtering leaves nothing, fallback to all spots to prevent crash
+      if (filteredSpots.isEmpty) {
+        filteredSpots = spotsWithCoords;
+      }
+
+      if (filteredSpots.isNotEmpty) {
+        final seedIndex = (DateTime.now().millisecondsSinceEpoch % filteredSpots.length).floor();
+        final seed = filteredSpots[seedIndex];
+
+        filteredSpots.sort((a, b) {
           final distA = Geolocator.distanceBetween(seed.value.lat, seed.value.lng, a.value.lat, a.value.lng);
           final distB = Geolocator.distanceBetween(seed.value.lat, seed.value.lng, b.value.lat, b.value.lng);
           return distA.compareTo(distB);
         });
 
-        // Take the closest spotCount spots (including the seed)
-        final selectedEntries = spotsWithCoords.take(spotCount).toList();
+        final selectedEntries = filteredSpots.take(spotCount).toList();
 
-        // Sort the selected spots in logical sequence based on distance to starting terminal
         selectedEntries.sort((a, b) {
           final distA = Geolocator.distanceBetween(terminal.lat, terminal.lng, a.value.lat, a.value.lng);
           final distB = Geolocator.distanceBetween(terminal.lat, terminal.lng, b.value.lat, b.value.lng);
@@ -289,6 +491,7 @@ class TripProvider extends ChangeNotifier {
     }
 
     _isGenerating = false;
+    _saveToPrefs();
     notifyListeners();
   }
 
@@ -301,6 +504,7 @@ class TripProvider extends ChangeNotifier {
   void resetItinerary() {
     _currentItinerary = null;
     _resetNavState();
+    _saveToPrefs();
     notifyListeners();
   }
 }

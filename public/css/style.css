@@ -2174,7 +2174,7 @@ button { font-family: inherit; }
 
 /* Payment methods */
 .pay-methods { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-.pay-method-group {}
+
 .pay-method-label {
     font-size: .72rem;
     font-weight: 800;
@@ -2272,7 +2272,7 @@ button { font-family: inherit; }
 .pay-shake { animation: payShake .45s ease; }
 
 /* Price breakdown sidebar */
-.pay-breakdown-card {}
+
 .pay-breakdown-rows { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: .6rem; }
 .pay-br-row {
     display: flex;

@@ -62,32 +62,24 @@ class ContactAdminSheet extends StatelessWidget {
 
           // WhatsApp
           _ContactOption(
-            icon: Icons.chat_rounded,
-            color: const Color(0xFF25D366),
+            imagePath: 'assets/images/—Pngtree—whatsapp icon whatsapp logo whatsapp_3584845.png',
+            color: AppColors.primary,
             title: 'WhatsApp',
             subtitle: AppStrings.adminWhatsApp,
             onTap: _openWhatsApp,
-            iconGradient: const LinearGradient(
-              colors: [Color(0xFF25D366), Color(0xFF075E54)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            iconGradient: AppColors.primaryGradient,
           ),
 
           const SizedBox(height: 12),
 
           // Instagram
           _ContactOption(
-            icon: Icons.camera_alt_rounded,
-            color: const Color(0xFFE1306C),
+            imagePath: 'assets/images/—Pngtree—instagram icon instagram logo vector_3584852.png',
+            color: AppColors.accent,
             title: 'Instagram',
             subtitle: '@d.mily___',
             onTap: _openInstagram,
-            iconGradient: const LinearGradient(
-              colors: [Color(0xFFFCAF45), Color(0xFFE1306C), Color(0xFFC13584), Color(0xFF833AB4)],
-              begin: Alignment.bottomLeft,
-              end: Alignment.topRight,
-            ),
+            iconGradient: AppColors.accentGradient,
           ),
 
           const SizedBox(height: 16),
@@ -98,7 +90,7 @@ class ContactAdminSheet extends StatelessWidget {
 }
 
 class _ContactOption extends StatelessWidget {
-  final IconData icon;
+  final String imagePath;
   final Color color;
   final String title;
   final String subtitle;
@@ -106,7 +98,7 @@ class _ContactOption extends StatelessWidget {
   final Gradient? iconGradient;
 
   const _ContactOption({
-    required this.icon,
+    required this.imagePath,
     required this.color,
     required this.title,
     required this.subtitle,
@@ -144,7 +136,11 @@ class _ContactOption extends StatelessWidget {
                     )
                   ] : null,
                 ),
-                child: Icon(icon, color: iconGradient == null ? color : Colors.white, size: 24),
+                padding: const EdgeInsets.all(10), // slightly more room for the natural color logo
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

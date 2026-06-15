@@ -36,6 +36,11 @@ class _RentalScreenState extends State<RentalScreen> {
   String _ojekTime = '09:00 WIB';
   int _ojekHours = 2; // Default 2 Jam
 
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _dateController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +48,23 @@ class _RentalScreenState extends State<RentalScreen> {
     final list = DestinationsData.destinations;
     _ojekDest1 = list.isNotEmpty ? list[0].name : 'Monumen Kapal Selam';
     _ojekDest2 = list.length > 1 ? list[1].name : 'Tugu Pahlawan';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rental = context.read<RentalProvider>();
+      _nameController.text = rental.renterName;
+      _phoneController.text = rental.renterPhone;
+      _dateController.text = rental.rentalDate.isNotEmpty
+          ? rental.rentalDate
+          : DateFormat('yyyy-MM-dd').format(DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _dateController.dispose();
+    super.dispose();
   }
 
   double _getDistance(double lat1, double lng1, double lat2, double lng2) {
@@ -199,42 +221,7 @@ class _RentalScreenState extends State<RentalScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Delivery Location Selector
-        Text(
-          language.translateText(id: 'Pilihan Titik Serah Terima Kendaraan', en: 'Delivery / Pickup Point Options'),
-          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _deliverySpot,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-              dropdownColor: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              items: [
-                'Stasiun Gubeng (Pusat - Gratis)',
-                'Stasiun Pasar Turi (+Rp 15.000)',
-                'Bandara Juanda (+Rp 50.000)',
-                'Hotel / Alamat Kustom (+Rp 20.000)',
-              ].map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
-              onChanged: (newVal) {
-                if (newVal != null) {
-                  setState(() => _deliverySpot = newVal);
-                }
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
+
 
         Text(
           language.translateText(id: 'Pilihan Unit Kendaraan', en: 'Vehicle Unit Options'),
@@ -317,16 +304,21 @@ class _RentalScreenState extends State<RentalScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF25D366).withOpacity(0.1),
+                          color: AppColors.primary.withOpacity(0.06),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF25D366).withOpacity(0.3)),
+                          border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 16),
+                            Image.asset(
+                              'assets/images/—Pngtree—whatsapp icon whatsapp logo whatsapp_3584845.png',
+                              height: 16,
+                              width: 16,
+                              fit: BoxFit.contain,
+                            ),
                             const SizedBox(width: 8),
-                            Text('WhatsApp', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF25D366))),
+                            Text('WhatsApp', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
                           ],
                         ),
                       ),
@@ -339,16 +331,21 @@ class _RentalScreenState extends State<RentalScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE1306C).withOpacity(0.1),
+                          color: AppColors.accent.withOpacity(0.06),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE1306C).withOpacity(0.3)),
+                          border: Border.all(color: AppColors.accent.withOpacity(0.15)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.camera_alt_rounded, color: Color(0xFFE1306C), size: 16),
+                            Image.asset(
+                              'assets/images/—Pngtree—instagram icon instagram logo vector_3584852.png',
+                              height: 16,
+                              width: 16,
+                              fit: BoxFit.contain,
+                            ),
                             const SizedBox(width: 8),
-                            Text('Instagram', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFFE1306C))),
+                            Text('Instagram', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accent)),
                           ],
                         ),
                       ),
@@ -505,19 +502,40 @@ class _RentalScreenState extends State<RentalScreen> {
       }
     }
 
+    // Auto calculate trip duration: 2 destinations = 2 hours, 3 destinations = 4 hours, 4 destinations = 6 hours
+    int activeDestCount = 2;
+    if (_ojekDest3 != '-') {
+      activeDestCount++;
+      if (_ojekDest4 != '-') {
+        activeDestCount++;
+      }
+    }
+
+    int autoHours = 2;
+    if (activeDestCount == 3) {
+      autoHours = 4;
+    } else if (activeDestCount == 4) {
+      autoHours = 6;
+    }
+    
+    final int currentOjekHours = autoHours;
+
     // Calculate vehiclePrice based on durational rules: 2 hours = 15k, 4 hours = 35k, 6 hours = 50k
     int vehiclePrice = 15000;
-    if (_ojekHours == 4) {
+    if (currentOjekHours == 4) {
       vehiclePrice = 35000;
-    } else if (_ojekHours == 6) {
+    } else if (currentOjekHours == 6) {
       vehiclePrice = 50000;
     }
 
     // Calculate BBM: 20k = 10 Liters = 10km -> 2000 per km
     final int bbmPrice = (totalKm * 2000).round();
     const int jasaDriverPrice = 15000; // Flat driver service fee
-    final int driverPrice = bbmPrice + jasaDriverPrice;
-    final int basePrice = vehiclePrice + driverPrice;
+    
+    // Stop-over fee: Rp 10.000 per destination stop
+    final int stopFee = activeDestCount * 10000;
+    
+    final int basePrice = vehiclePrice + bbmPrice + jasaDriverPrice + stopFee;
 
     final terminalOptions = TerminalData.terminals.map((t) => t.name).toList();
     final destinationOptions = DestinationsData.destinations.map((d) => d.name).toList();
@@ -698,58 +716,95 @@ class _RentalScreenState extends State<RentalScreen> {
                 },
               ),
               const SizedBox(height: 14),
-
-              // Durasi Sewa
-              Text(language.translateText(id: 'Durasi Perjalanan / Sewa Ojek', en: 'Trip Duration / Ojek Rental'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<int>(
-                isExpanded: true,
-                value: _ojekHours,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.av_timer_rounded, color: AppColors.primary),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: durationOptions.map((h) => DropdownMenuItem<int>(value: h, child: Text('$h ' + language.translateText(id: 'Jam', en: 'Hours'), style: GoogleFonts.poppins(fontSize: 12)))).toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _ojekHours = val);
-                },
-              ),
             ],
           ),
         ),
         const SizedBox(height: 20),
 
-        // Route info card
-        Text(language.translateText(id: 'Informasi Penjemputan', en: 'Pickup Information'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+        Text(language.translateText(id: 'Informasi Kontak & Reservasi', en: 'Contact & Reservation Info'), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildRouteSummaryItem(
-                icon: Icons.train_rounded,
-                label: language.translateText(id: 'Lokasi Penjemputan Awal', en: 'Initial Pickup Location'),
-                value: _ojekStart,
-              ),
-              const Divider(height: 20),
-              _buildRouteSummaryItem(
-                icon: Icons.schedule_rounded,
-                label: language.translateText(id: 'Jadwal Penjemputan Driver', en: 'Driver Pickup Schedule'),
-                value: language.translateText(id: 'Standby & Jemput pukul $_ojekTime', en: 'Standby & Pickup at $_ojekTime'),
-              ),
-              const Divider(height: 20),
-              _buildRouteSummaryItem(
-                icon: Icons.alt_route_rounded,
-                label: language.translateText(id: 'Estimasi Jarak Rute', en: 'Estimated Route Distance'),
-                value: '${totalKm.toStringAsFixed(1)} km',
-              ),
-            ],
+
+        // Reservation Form
+        Form(
+          key: _formKey,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Nama Pemesan
+                Text(language.translateText(id: 'Nama Lengkap', en: 'Full Name'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _nameController,
+                  style: GoogleFonts.poppins(fontSize: 12),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.person_rounded, color: AppColors.primary),
+                    hintText: language.translateText(id: 'Masukkan nama lengkap', en: 'Enter full name'),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return language.translateText(id: 'Nama tidak boleh kosong', en: 'Name cannot be empty');
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                // No. WhatsApp
+                Text(language.translateText(id: 'No. WhatsApp', en: 'WhatsApp Number'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: GoogleFonts.poppins(fontSize: 12),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.phone_rounded, color: AppColors.primary),
+                    hintText: language.translateText(id: 'Contoh: 081234567890', en: 'Example: 081234567890'),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return language.translateText(id: 'Nomor WhatsApp tidak boleh kosong', en: 'WhatsApp number cannot be empty');
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                // Tanggal Sewa
+                Text(language.translateText(id: 'Tanggal Sewa / Penjemputan', en: 'Rental / Pickup Date'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _dateController,
+                  readOnly: true,
+                  style: GoogleFonts.poppins(fontSize: 12),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 20),
@@ -766,9 +821,13 @@ class _RentalScreenState extends State<RentalScreen> {
             children: [
               Text(language.translateText(id: 'Rincian Biaya Ro-Jek', en: 'Ro-Jek Price Details'), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
               const SizedBox(height: 8),
-              _buildPriceRow(language.translateText(id: 'Penyewaan Kendaraan', en: 'Vehicle Rental') + ' ($_ojekHours ' + language.translateText(id: 'Jam', en: 'Hours') + ')', _formatRp(vehiclePrice)),
+              _buildPriceRow(language.translateText(id: 'Penyewaan Kendaraan', en: 'Vehicle Rental') + ' ($currentOjekHours ' + language.translateText(id: 'Jam', en: 'Hours') + ')', _formatRp(vehiclePrice)),
               const SizedBox(height: 6),
-              _buildPriceRow(language.translateText(id: 'Jasa Driver & BBM', en: 'Driver Service & Fuel'), _formatRp(driverPrice)),
+              _buildPriceRow(language.translateText(id: 'Jasa Driver (Flat)', en: 'Driver Service (Flat)'), _formatRp(jasaDriverPrice)),
+              const SizedBox(height: 6),
+              _buildPriceRow(language.translateText(id: 'Jasa BBM & Jarak', en: 'Fuel & Distance'), _formatRp(bbmPrice)),
+              const SizedBox(height: 6),
+              _buildPriceRow(language.translateText(id: 'Biaya Per Stop ($activeDestCount Destinasi)', en: 'Stop-over Fee ($activeDestCount Dests)'), _formatRp(stopFee)),
               const Divider(color: AppColors.accent, height: 20),
               _buildPriceRow(language.translateText(id: 'Total Biaya', en: 'Total Price'), _formatRp(basePrice), isBold: true),
             ],
@@ -787,7 +846,16 @@ class _RentalScreenState extends State<RentalScreen> {
                 return;
               }
 
+              if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+                return;
+              }
+
               final rental = context.read<RentalProvider>();
+              rental.setRenterInfo(
+                name: _nameController.text.trim(),
+                phone: _phoneController.text.trim(),
+                date: _dateController.text.trim(),
+              );
               rental.setIsOjek(true);
               rental.setPickupTime(_ojekTime);
 

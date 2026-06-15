@@ -463,3 +463,21 @@ Route::get('/umkm', function () {
     ];
     return view('pages.umkm', compact('products'));
 })->name('umkm');
+
+use App\Http\Controllers\PaymentController;
+
+// CORS Preflight
+Route::options('/api/payment/{any}', [PaymentController::class, 'handleOptions'])->where('any', '.*');
+
+// Payment API endpoints
+Route::post('/api/payment/token', [PaymentController::class, 'createSnapToken']);
+Route::post('/api/payment/notification', [PaymentController::class, 'notificationCallback']);
+Route::post('/api/payment/callback', [PaymentController::class, 'notificationCallback']); // alias
+Route::get('/api/payment/status/{orderId}', [PaymentController::class, 'checkStatus']);
+Route::get('/api/payment/history', [PaymentController::class, 'getHistory']);
+
+// Payment finish redirect (from Midtrans callbacks)
+Route::get('/payment/finish', function () {
+    return response()->json(['message' => 'Payment finished. Kembali ke aplikasi Routee.']);
+});
+

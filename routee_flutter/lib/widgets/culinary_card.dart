@@ -69,11 +69,18 @@ class CulinaryCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(
-                        '★ ${culinary.rating}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, color: AppColors.accent, size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${culinary.rating}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -10,6 +10,8 @@ import '../../providers/language_provider.dart';
 import '../../providers/bookmark_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../widgets/common/bounceable.dart';
+import '../../widgets/common/emergency_sheet.dart';
+import '../../widgets/common/passport_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -309,6 +311,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: language.translate('notifications'),
                     subtitle: language.translate('notifications_sub'),
                     onTap: () => _showNotificationsBottomSheet(context),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.contact_mail_rounded,
+                    title: language.translateText(id: 'Paspor Heritage', en: 'Heritage Passport'),
+                    subtitle: language.translateText(id: 'Koleksi lencana bukti petualangan Anda', en: 'Collection of your adventure badges'),
+                    onTap: () => HeritagePassportSheet.show(context),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.emergency_rounded,
+                    title: language.translateText(id: 'Bantuan Darurat', en: 'Emergency Contact'),
+                    subtitle: language.translateText(id: 'Nomor darurat medis, keamanan, & info wisata', en: 'Emergency medical, security, & tourist info'),
+                    onTap: () => EmergencyContactSheet.show(context),
                   ),
                   _buildMenuItem(
                     icon: Icons.language_rounded,

@@ -6,8 +6,9 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get lightTheme {
-    final base = ThemeData.light(useMaterial3: true);
-    return base.copyWith(
+    return ThemeData(
+      useMaterial3: true,
+      fontFamily: 'Poppins',
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,

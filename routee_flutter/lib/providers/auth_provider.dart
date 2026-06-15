@@ -229,6 +229,21 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
+  bool resetPassword(String email, String newPassword) {
+    final idx = _registeredUsers.indexWhere((u) => u['email']?.toLowerCase() == email.toLowerCase());
+    if (idx != -1) {
+      _registeredUsers[idx]['password'] = newPassword;
+      _saveUsersToPrefs();
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  bool userExists(String email) {
+    return _registeredUsers.any((u) => u['email']?.toLowerCase() == email.toLowerCase());
+  }
+
   List<Map<String, String>> get employees {
     return _registeredUsers.where((u) => u['role'] == 'karyawan').toList();
   }

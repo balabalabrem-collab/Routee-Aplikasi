@@ -13,6 +13,7 @@ class DestinationModel {
   final double lat;
   final double lng;
   final String imageSource;
+  final String? audioNarrative;
 
   const DestinationModel({
     required this.id,
@@ -29,5 +30,6 @@ class DestinationModel {
     required this.lat,
     required this.lng,
     this.imageSource = 'Google Images',
+    this.audioNarrative,
   });
 }

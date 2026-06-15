@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/data/driver_data.dart';
 import '../../core/models/chat_model.dart';
 import '../../core/models/driver_model.dart';
+import '../../providers/rental_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String driverId;
@@ -18,7 +20,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [];
   DriverModel? _driver;
 
   // Auto replies from driver
@@ -37,14 +38,20 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _driver = DriverData.findById(widget.driverId);
 
-    // Initial greeting from driver
-    _messages.add(ChatMessage(
-      id: 'msg-0',
-      senderId: widget.driverId,
-      message: 'Halo kak! Saya ${_driver?.name ?? 'driver'} 👋\nSiap menjadi driver perjalanan heritage Surabaya hari ini.\n\nMau dijemput dimana kak?',
-      timestamp: DateTime.now(),
-      isFromDriver: true,
-    ));
+    // Initial greeting if no messages exist yet
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rental = context.read<RentalProvider>();
+      if (rental.chatMessages.isEmpty) {
+        rental.addChatMessage(ChatMessage(
+          id: 'msg-0',
+          senderId: widget.driverId,
+          message: 'Halo kak! Saya ${_driver?.name ?? 'driver'} 👋\nSiap menjadi driver perjalanan heritage Surabaya hari ini.\n\nMau dijemput dimana kak?',
+          timestamp: DateTime.now(),
+          isFromDriver: true,
+        ));
+      }
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -57,15 +64,14 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add(ChatMessage(
-        id: 'msg-${_messages.length}',
-        senderId: 'user',
-        message: text.trim(),
-        timestamp: DateTime.now(),
-        isFromDriver: false,
-      ));
-    });
+    final rental = context.read<RentalProvider>();
+    rental.addChatMessage(ChatMessage(
+      id: 'msg-${rental.chatMessages.length}',
+      senderId: 'user',
+      message: text.trim(),
+      timestamp: DateTime.now(),
+      isFromDriver: false,
+    ));
 
     _textController.clear();
     _scrollToBottom();
@@ -73,16 +79,14 @@ class _ChatScreenState extends State<ChatScreen> {
     // Simulate driver auto-reply
     Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
-      setState(() {
-        _messages.add(ChatMessage(
-          id: 'msg-${_messages.length}',
-          senderId: widget.driverId,
-          message: _autoReplies[_replyIndex % _autoReplies.length],
-          timestamp: DateTime.now(),
-          isFromDriver: true,
-        ));
-        _replyIndex++;
-      });
+      rental.addChatMessage(ChatMessage(
+        id: 'msg-${rental.chatMessages.length}',
+        senderId: widget.driverId,
+        message: _autoReplies[_replyIndex % _autoReplies.length],
+        timestamp: DateTime.now(),
+        isFromDriver: true,
+      ));
+      _replyIndex++;
       _scrollToBottom();
     });
   }
@@ -101,6 +105,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final rental = context.watch<RentalProvider>();
+    final messages = rental.chatMessages;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -155,8 +162,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (ctx, i) => _MessageBubble(message: _messages[i]),
+              itemCount: messages.length,
+              itemBuilder: (ctx, i) => _MessageBubble(message: messages[i]),
             ),
           ),
 
@@ -241,7 +248,7 @@ class _MessageBubble extends StatelessWidget {
             Container(
               width: 28, height: 28,
               margin: const EdgeInsets.only(right: 6),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.primarySurface,
                 shape: BoxShape.circle,
               ),

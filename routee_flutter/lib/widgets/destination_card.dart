@@ -56,16 +56,23 @@ class DestinationCard extends StatelessWidget {
                   Positioned(
                     top: 10, right: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        '★ ${destination.rating}',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.accentLight, fontSize: 11, fontWeight: FontWeight.w700,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, color: AppColors.accent, size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${destination.rating}',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.accentLight, fontSize: 10, fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

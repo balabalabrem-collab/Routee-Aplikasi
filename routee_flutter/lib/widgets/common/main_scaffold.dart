@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/home_scroll_provider.dart';
+import '../../providers/rental_provider.dart';
 
 class MainScaffold extends StatefulWidget {
   final Widget child;
@@ -69,6 +70,9 @@ class _MainScaffoldState extends State<MainScaffold> {
 
     final language = context.watch<LanguageProvider>();
 
+    final rental = context.watch<RentalProvider>();
+    final isOjekActive = rental.rentalStatus == 'onTrip' && rental.isOjek && rental.selectedDriver != null;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -90,7 +94,13 @@ class _MainScaffoldState extends State<MainScaffold> {
         }
       },
       child: Scaffold(
-        body: widget.child,
+        body: Column(
+          children: [
+            Expanded(child: widget.child),
+            if (isOjekActive)
+              _buildActiveOjekBanner(context, rental, language),
+          ],
+        ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -140,6 +150,104 @@ class _MainScaffoldState extends State<MainScaffold> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActiveOjekBanner(BuildContext context, RentalProvider rental, LanguageProvider language) {
+    final driver = rental.selectedDriver!;
+    final pay = rental.currentPayment;
+    final rentalId = pay?.id ?? 'temp';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryDark,
+        border: const Border(
+          top: BorderSide(color: AppColors.accent, width: 1.5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Colors.white10,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.sports_motorsports_rounded, color: AppColors.accent, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  language.translateText(id: 'Perjalanan RO-JEK Aktif', en: 'Active RO-JEK Trip'),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  language.translateText(
+                    id: 'Driver: ${driver.name}',
+                    en: 'Driver: ${driver.name}',
+                  ),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => context.push('/chat/${driver.id}'),
+                icon: const Icon(Icons.chat_rounded, size: 14, color: AppColors.primaryDark),
+                label: Text(
+                  language.translateText(id: 'Chat', en: 'Chat'),
+                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/driver-tracking/$rentalId'),
+                icon: const Icon(Icons.my_location_rounded, size: 14, color: Colors.white),
+                label: Text(
+                  language.translateText(id: 'Lacak', en: 'Track'),
+                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.white54),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

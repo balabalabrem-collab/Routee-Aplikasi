@@ -18,6 +18,7 @@ class DestinationsData {
       rating: 4.5,
       lat: -7.2480,
       lng: 112.7343,
+      audioNarrative: 'Tahukah Anda? Kampoeng Maspati menyimpan sumur kuno sejak zaman Majapahit dan makam Raden Karyosentono yang dipercaya warga sebagai sesepuh kampung. Kampung ini juga menjadi basis dapur umum pejuang pada pertempuran sepuluh November sembilan belas empat puluh lima.',
     ),
 
     DestinationModel(
@@ -35,6 +36,7 @@ class DestinationsData {
       rating: 4.6,
       lat: -7.2289,
       lng: 112.7371,
+      audioNarrative: 'Fakta unik! Gedung De Javasche Bank memiliki sistem ventilasi udara bawah tanah alami yang mendinginkan ruangan tanpa pendingin ruangan atau AC. Di ruang bawah tanahnya terdapat brankas raksasa dengan pintu baja super tebal buatan Belanda yang masih utuh sampai sekarang.',
     ),
     DestinationModel(
       id: 'tunjungan',
@@ -51,6 +53,7 @@ class DestinationsData {
       rating: 4.6,
       lat: -7.2586,
       lng: 112.7379,
+      audioNarrative: 'Tahukah Anda? Nama Tunjungan berasal dari kata Tunjung yang berarti bunga teratai. Di jalan ini berdiri Hotel Majapahit, tempat terjadinya peristiwa penyobekan warna biru pada bendera Belanda oleh arek-arek Suroboyo pada tahun sembilan belas empat puluh lima.',
     ),
     DestinationModel(
       id: 'gedung-siola',
@@ -67,6 +70,7 @@ class DestinationsData {
       rating: 4.5,
       lat: -7.2583,
       lng: 112.7367,
+      audioNarrative: 'Gedung Siola awalnya bernama Whiteaway Laidlaw, sebuah toserba termegah di Surabaya pada era kolonial. Setelah kemerdekaan, gedung ini dipakai oleh kongsi dagang Siola yang merupakan singkatan nama Soemitro, Ing Wibisono, Ong, Liem, Ang, hingga akhirnya menjadi museum kota.',
     ),
     DestinationModel(
       id: 'kota-lama',
@@ -83,6 +87,7 @@ class DestinationsData {
       rating: 4.7,
       lat: -7.2275,
       lng: 112.7342,
+      audioNarrative: 'Kawasan Kota Lama Surabaya dulu dijuluki Europeesche Wijk atau kawasan Eropa. Di sinilah terletak pusat pemerintahan kolonial Belanda dengan ciri khas gedung-gedung bergaya arsitektur Gotik dan Klasik di utara jembatan merah.',
     ),
     DestinationModel(
       id: 'alun-alun',
@@ -99,6 +104,7 @@ class DestinationsData {
       rating: 4.4,
       lat: -7.2647,
       lng: 112.7403,
+      audioNarrative: 'Fakta menarik! Alun-Alun Surabaya merupakan satu-satunya ruang publik di Indonesia yang memiliki kompleks galeri seni di bawah permukaan tanah. Di atasnya berdiri Balai Pemuda, tempat berkumpulnya kelompok pemuda militan bentukan Bung Tomo.',
     ),
     DestinationModel(
       id: 'taman-bungkul',
@@ -115,6 +121,7 @@ class DestinationsData {
       rating: 4.6,
       lat: -7.2922,
       lng: 112.7358,
+      audioNarrative: 'Tahukah Anda? Nama Bungkul diambil dari Ki Ageng Supo, seorang ulama penyebar Islam di Surabaya selatan yang makamnya berada di dalam taman. Taman ini pernah dinobatkan sebagai taman kota terbaik se-Asia Tenggara oleh Perserikatan Bangsa-Bangsa.',
     ),
     DestinationModel(
       id: 'kenjeran',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -101,11 +102,8 @@ class HomeScreen extends StatelessWidget {
           // ─── SEWA TRANSPORTASI CTA ─────────────────────
           SliverToBoxAdapter(child: _TransportCta()),
 
-          // ─── HUBUNGI KAMI ──────────────────────────────
-          SliverToBoxAdapter(child: _ContactSection()),
-
-          // ─── CTA BANNER ───────────────────────────────
-          SliverToBoxAdapter(child: _CtaBanner()),
+          // ─── CONTACT ADMIN ─────────────────────────────
+          const SliverToBoxAdapter(child: _ContactAdminSection()),
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
@@ -180,35 +178,6 @@ class _HeroSection extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.accent.withOpacity(0.5)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6, height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppColors.accent, shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          language.translateText(id: 'Rute Warisan', en: 'Heritage Trip'),
-                          style: GoogleFonts.poppins(
-                            color: AppColors.accentLight,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   Consumer<AuthProvider>(
                     builder: (context, auth, _) {
                       final isLoggedIn = auth.isLoggedIn;
@@ -328,68 +297,13 @@ class _HeroSection extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Image card stack
-              _HeroImageRow(),
+              // Image slider
+              const _HeroImageSlider(),
 
-              const SizedBox(height: 28),
+              _CtaBanner(),
 
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildButton(
-                      label: language.translateText(id: '🗺️  Rencanakan Trip', en: '🗺️  Plan My Trip'),
-                      isPrimary: true,
-                      context: context,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildButton(
-                      label: language.translate('explore'),
-                      isPrimary: false,
-                      context: context,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButton({
-    required String label,
-    required bool isPrimary,
-    required BuildContext context,
-  }) {
-    return Bounceable(
-      onTap: () {
-        if (isPrimary) {
-          context.go('/trip');
-        } else {
-          context.go('/explore');
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isPrimary ? AppColors.accent : Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(12),
-          border: isPrimary ? null : Border.all(color: Colors.white.withOpacity(0.4)),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: isPrimary ? AppColors.textPrimary : Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
           ),
         ),
       ),
@@ -397,62 +311,136 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
-class _HeroImageRow extends StatelessWidget {
+class _HeroImageSlider extends StatefulWidget {
+  const _HeroImageSlider({super.key});
+
+  @override
+  State<_HeroImageSlider> createState() => _HeroImageSliderState();
+}
+
+class _HeroImageSliderState extends State<_HeroImageSlider> {
+  late final PageController _pageController;
+  late final Timer _timer;
+  int _currentPage = 0;
+
   final List<Map<String, String>> images = const [
     {'img': 'assets/images/Kampoeng Lawas Maspati.JPG.jpeg', 'name': 'Kampoeng Lawas Maspati'},
+    {'img': 'assets/images/gedung javasche bank.JPG.jpeg', 'name': 'Gedung De Javasche Bank'},
+    {'img': 'assets/images/jalan tunjungan.JPG.jpeg', 'name': 'Jalan Tunjungan'},
+    {'img': 'assets/images/museum siola.JPG.jpeg', 'name': 'Museum Surabaya (Siola)'},
+    {'img': 'assets/images/kawasan kota lama.JPG.jpeg', 'name': 'Kawasan Kota Lama'},
+    {'img': 'assets/images/alun alun surabaya.JPG.jpeg', 'name': 'Alun-Alun Surabaya'},
     {'img': 'assets/images/masjid cenghoo.jpg.jpeg', 'name': 'Masjid Cheng Hoo'},
     {'img': 'assets/images/makam sunan ampel.jpg.jpeg', 'name': 'Makam Sunan Ampel'},
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        int nextPage = _currentPage + 1;
+        if (nextPage >= images.length) {
+          nextPage = 0;
+        }
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 120,
-      child: Row(
-        children: images.asMap().entries.map((e) {
-          final i = e.key;
-          final item = e.value;
-          return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: i < images.length - 1 ? 8 : 0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
+      height: 150,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (int page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+              itemCount: images.length,
+              itemBuilder: (context, index) {
+                final item = images[index];
+                return Stack(
                   fit: StackFit.expand,
                   children: [
                     Image.asset(
                       item['img']!,
                       fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) => Container(color: Colors.white12),
+                      errorBuilder: (c, e, s) => Container(
+                        color: Colors.white.withOpacity(0.08),
+                        child: const Icon(Icons.image, color: Colors.white24, size: 40),
+                      ),
                     ),
                     Container(
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+                          colors: [
+                            Colors.transparent,
+                            Color(0xAA000000),
+                          ],
                         ),
                       ),
                     ),
                     Positioned(
-                      bottom: 6, left: 6, right: 6,
+                      bottom: 14,
+                      left: 14,
+                      right: 14,
                       child: Text(
                         item['name']!,
                         style: GoogleFonts.poppins(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
+                );
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 14,
+            right: 14,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                images.length,
+                (index) => Container(
+                  width: _currentPage == index ? 14 : 6,
+                  height: 6,
+                  margin: const EdgeInsets.only(left: 4),
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? AppColors.accent
+                        : Colors.white.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
               ),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
@@ -592,10 +580,24 @@ class _StatsRow extends StatelessWidget {
                       : null,
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(e.value['num']!, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                    if (e.value['num']!.contains('★'))
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            e.value['num']!.replaceAll('★', ''),
+                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary, height: 1.2),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.star_rounded, color: AppColors.primary, size: 15),
+                        ],
+                      )
+                    else
+                      Text(e.value['num']!, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary, height: 1.2)),
                     const SizedBox(height: 2),
-                    Text(e.value['label']!, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+                    Text(e.value['label']!, style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500, height: 1.2)),
                   ],
                 ),
               ),
@@ -688,24 +690,8 @@ class _CtaBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final language = context.watch<LanguageProvider>();
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF6D4C2A), Color(0xFF4A3219)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         children: [
           const Text('🗺️', style: TextStyle(fontSize: 36)),
@@ -838,72 +824,93 @@ class _TransportCta extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════
-// CONTACT SECTION
+// CONTACT ADMIN SECTION
 // ═══════════════════════════════════════════════════════
-class _ContactSection extends StatelessWidget {
+class _ContactAdminSection extends StatelessWidget {
+  const _ContactAdminSection();
+
   @override
   Widget build(BuildContext context) {
-    final language = context.watch<LanguageProvider>();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
         children: [
-          Text(language.translateText(id: 'Hubungi Kami', en: 'Contact Us'), style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 1)),
-          const SizedBox(height: 4),
-          Text(language.translateText(id: 'Butuh Bantuan?', en: 'Need Help?'), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          Text(language.translateText(id: 'Tim admin siap membantu melalui WhatsApp atau Instagram', en: 'Our admin team is ready to help via WhatsApp or Instagram'), style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary)),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Bounceable(
-                  onTap: () => ContactAdminSheet.show(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF25D366).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFF25D366).withOpacity(0.3)),
+          Expanded(
+            child: Bounceable(
+              onTap: () => ContactAdminSheet.show(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  gradient: AppColors.accentGradient,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accent.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 18),
-                        const SizedBox(width: 8),
-                        Text('WhatsApp', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF25D366))),
-                      ],
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/—Pngtree—whatsapp icon whatsapp logo whatsapp_3584845.png',
+                      height: 18,
+                      width: 18,
+                      fit: BoxFit.contain,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'WhatsApp',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Bounceable(
-                  onTap: () => ContactAdminSheet.show(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE1306C).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE1306C).withOpacity(0.3)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Bounceable(
+              onTap: () => ContactAdminSheet.show(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/—Pngtree—instagram icon instagram logo vector_3584852.png',
+                      height: 18,
+                      width: 18,
+                      fit: BoxFit.contain,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.camera_alt_rounded, color: Color(0xFFE1306C), size: 18),
-                        const SizedBox(width: 8),
-                        Text('Instagram', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFFE1306C))),
-                      ],
+                    const SizedBox(width: 8),
+                    Text(
+                      'Instagram',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 }
+

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../providers/rental_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../widgets/common/bounceable.dart';
@@ -16,7 +18,7 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  int _currentStep = 0; // 0: summary, 1: method, 2: confirm, 3: success
+  int _currentStep = 0; // 0: summary, 1: method, 2: confirm, 3: webview/pending, 4: success
   final _formatter = NumberFormat('#,###', 'id_ID');
 
   String _formatRp(int amount) => 'Rp ${_formatter.format(amount)}';
@@ -29,7 +31,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       backgroundColor: AppColors.background,
       appBar: _currentStep < 3
           ? AppBar(
-              title: Text(_currentStep == 0 ? 'Ringkasan Pesanan' : _currentStep == 1 ? 'Metode Pembayaran' : 'Konfirmasi'),
+              title: Text(
+                _currentStep == 0
+                    ? 'Ringkasan Pesanan'
+                    : _currentStep == 1
+                        ? 'Metode Pembayaran'
+                        : 'Konfirmasi',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () {
@@ -44,168 +53,173 @@ class _PaymentScreenState extends State<PaymentScreen> {
           : null,
       body: Column(
         children: [
-          // Stepper
+          // Progress Stepper
           if (_currentStep < 3)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  // Horizontal line behind the circles
-                  Positioned(
-                    top: 14,
-                    left: 32,
-                    right: 32,
-                    child: Container(
-                      height: 2,
-                      color: AppColors.divider,
-                    ),
-                  ),
-                  Positioned(
-                    top: 14,
-                    left: 32,
-                    right: 32,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        double widthFactor = (_currentStep / 3.0).clamp(0.0, 1.0);
-                        return FractionallySizedBox(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: widthFactor,
-                          child: Container(
-                            height: 2,
-                            color: AppColors.primary,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  // The 4 step circles and labels
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(4, (i) {
-                      final labels = ['Ringkasan', 'Bayar', 'Konfirmasi', 'Selesai'];
-                      final isActive = i <= _currentStep;
-                      return SizedBox(
-                        width: 76,
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 28, height: 28,
-                              decoration: BoxDecoration(
-                                color: isActive ? AppColors.primary : AppColors.surfaceVariant,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: isActive ? AppColors.primary : AppColors.divider, width: 2),
-                              ),
-                              child: Center(
-                                child: i < _currentStep
-                                    ? const Icon(Icons.check, size: 12, color: Colors.white)
-                                    : Text(
-                                        '${i + 1}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          color: isActive ? Colors.white : AppColors.textMuted,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              labels[i],
-                              style: GoogleFonts.poppins(
-                                fontSize: 9,
-                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                                color: isActive ? AppColors.primary : AppColors.textMuted,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ),
-
-          // Warning Banner
-          if (_currentStep < 3)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline_rounded, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Mode Uji Coba: Transaksi ini bersifat simulasi lokal dan tidak memotong saldo riil Anda.',
-                      style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildStepper(),
 
           // Content
           Expanded(
-            child: _currentStep == 0
-                ? _SummaryStep(rental: rental, formatter: _formatRp)
-                : _currentStep == 1
-                    ? _PaymentMethodStep(rental: rental)
-                    : _currentStep == 2
-                        ? _ConfirmStep(rental: rental, formatter: _formatRp)
-                        : _SuccessStep(rental: rental, formatter: _formatRp),
+            child: _buildStep(rental),
           ),
 
           // Bottom button
           if (_currentStep < 3)
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
-              ),
-              child: SafeArea(
+            _buildBottomBar(rental),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepper() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Positioned(
+            top: 14,
+            left: 32,
+            right: 32,
+            child: Container(height: 2, color: AppColors.divider),
+          ),
+          Positioned(
+            top: 14,
+            left: 32,
+            right: 32,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double widthFactor = (_currentStep / 3.0).clamp(0.0, 1.0);
+                return FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: widthFactor,
+                  child: Container(height: 2, color: AppColors.primary),
+                );
+              },
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(4, (i) {
+              final labels = ['Ringkasan', 'Bayar', 'Konfirmasi', 'Selesai'];
+              final isActive = i <= _currentStep;
+              return SizedBox(
+                width: 76,
                 child: Column(
                   children: [
-                    if (_currentStep == 2) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Total Bayar', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
-                          Text(_formatRp(rental.totalAmount), style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _canProceed(rental) ? () => _nextStep(rental) : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          disabledBackgroundColor: AppColors.divider,
-                        ),
-                        child: Text(
-                          _currentStep == 2 ? 'Bayar Sekarang' : 'Lanjutkan',
-                          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: isActive ? AppColors.primary : AppColors.surfaceVariant,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isActive ? AppColors.primary : AppColors.divider,
+                          width: 2,
                         ),
                       ),
+                      child: Center(
+                        child: i < _currentStep
+                            ? const Icon(Icons.check, size: 12, color: Colors.white)
+                            : Text(
+                                '${i + 1}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: isActive ? Colors.white : AppColors.textMuted,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      labels[i],
+                      style: GoogleFonts.poppins(
+                        fontSize: 9,
+                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        color: isActive ? AppColors.primary : AppColors.textMuted,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(RentalProvider rental) {
+    switch (_currentStep) {
+      case 0:
+        return _SummaryStep(rental: rental, formatter: _formatRp);
+      case 1:
+        return _PaymentMethodStep(rental: rental);
+      case 2:
+        return _ConfirmStep(rental: rental, formatter: _formatRp);
+      case 3:
+        // COD: tampilkan halaman khusus COD
+        if (rental.isCodPayment) {
+          return _CodStep(
+            rental: rental,
+            formatter: _formatRp,
+            onConfirm: () => setState(() => _currentStep = 4),
+          );
+        }
+        // Midtrans: tampilkan WebView atau pending check
+        return _MidtransWebViewStep(
+          rental: rental,
+          formatter: _formatRp,
+          onPaymentSuccess: () => setState(() => _currentStep = 4),
+        );
+      default:
+        return _SuccessStep(rental: rental, formatter: _formatRp);
+    }
+  }
+
+  Widget _buildBottomBar(RentalProvider rental) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (_currentStep == 2) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total Bayar',
+                      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+                  Text(_formatRp(rental.totalAmount),
+                      style: GoogleFonts.poppins(
+                          fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _canProceed(rental) ? () => _nextStep(rental) : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  disabledBackgroundColor: AppColors.divider,
+                ),
+                child: Text(
+                  _currentStep == 2 ? 'Bayar Sekarang' : 'Lanjutkan',
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -217,7 +231,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   void _nextStep(RentalProvider rental) async {
     if (_currentStep == 2) {
-      // Process payment
+      // COD: langsung proses tanpa Midtrans
+      if (rental.isCodPayment) {
+        rental.processCodPayment();
+        setState(() => _currentStep = 3);
+        return;
+      }
+
+      // Midtrans: initiate payment
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -230,18 +251,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
               children: [
                 const CircularProgressIndicator(color: AppColors.primary),
                 const SizedBox(height: 16),
-                Text('Memproses pembayaran...', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+                Text('Menghubungi server pembayaran...',
+                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
               ],
             ),
           ),
         ),
       );
 
-      await rental.processPayment();
+      final result = await rental.initiatePayment();
 
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        setState(() => _currentStep = 3);
+        if (result['success'] == true) {
+          setState(() => _currentStep = 3);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal memulai pembayaran'),
+              backgroundColor: Colors.red.shade700,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Coba Lagi',
+                textColor: Colors.white,
+                onPressed: () => _nextStep(rental),
+              ),
+            ),
+          );
+        }
       }
     } else {
       setState(() => _currentStep++);
@@ -276,8 +313,13 @@ class _SummaryStep extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 52, height: 52,
-                  decoration: BoxDecoration(color: AppColors.primarySurface, shape: BoxShape.circle, border: Border.all(color: AppColors.accent, width: 2)),
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.accent, width: 2),
+                  ),
                   child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 26),
                 ),
                 const SizedBox(width: 14),
@@ -285,11 +327,15 @@ class _SummaryStep extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(driver?.name ?? '-', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(driver?.name ?? '-',
+                          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700)),
                       Row(children: [
                         const Icon(Icons.star_rounded, size: 14, color: AppColors.accent),
-                        Text(' ${driver?.rating ?? 0}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent)),
-                        Text('  •  ${driver?.totalTrips ?? 0} trips', style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                        Text(' ${driver?.rating ?? 0}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent)),
+                        Text('  •  ${driver?.totalTrips ?? 0} trips',
+                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
                       ]),
                     ],
                   ),
@@ -302,7 +348,11 @@ class _SummaryStep extends StatelessWidget {
           // Vehicle info
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)]),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
+            ),
             child: Column(
               children: [
                 _InfoRow(label: 'Kendaraan', value: driver?.vehicleName ?? '-'),
@@ -317,7 +367,8 @@ class _SummaryStep extends StatelessWidget {
 
           // Duration selector
           if (!rental.isOjek) ...[
-            Text('Durasi Sewa', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+            Text('Durasi Sewa',
+                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Row(
               children: [4, 8, 12].map((h) {
@@ -332,12 +383,26 @@ class _SummaryStep extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isSelected ? AppColors.primary : AppColors.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isSelected ? AppColors.primary : AppColors.divider),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.divider,
+                          ),
                         ),
                         child: Column(
                           children: [
-                            Text('$h jam', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: isSelected ? Colors.white : AppColors.textPrimary)),
-                            Text(h == 4 ? 'Setengah hari' : h == 8 ? 'Seharian' : 'Full day+', style: GoogleFonts.poppins(fontSize: 9, color: isSelected ? Colors.white70 : AppColors.textMuted)),
+                            Text('$h jam',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: isSelected ? Colors.white : AppColors.textPrimary)),
+                            Text(
+                                h == 4
+                                    ? 'Setengah hari'
+                                    : h == 8
+                                        ? 'Seharian'
+                                        : 'Full day+',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 9,
+                                    color: isSelected ? Colors.white70 : AppColors.textMuted)),
                           ],
                         ),
                       ),
@@ -348,8 +413,8 @@ class _SummaryStep extends StatelessWidget {
             ),
             const SizedBox(height: 20),
           ] else ...[
-            // For Ojek, show pickup time
-            Text('Estimasi Waktu Penjemputan', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
+            Text('Estimasi Waktu Penjemputan',
+                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
@@ -364,17 +429,18 @@ class _SummaryStep extends StatelessWidget {
                 children: [
                   const Icon(Icons.schedule_rounded, color: AppColors.primary, size: 20),
                   const SizedBox(width: 12),
-                  Text(
-                    'Jemput pukul ${rental.pickupTime}',
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  ),
+                  Text('Jemput pukul ${rental.pickupTime}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary)),
                 ],
               ),
             ),
             const SizedBox(height: 20),
           ],
 
-          // Trip Confirmation Info
+          // Trip route info
           ...(() {
             final trip = context.watch<TripProvider>();
             final itinerary = trip.currentItinerary;
@@ -389,8 +455,10 @@ class _SummaryStep extends StatelessWidget {
 
             return <Widget>[
               const SizedBox(height: 20),
-              Text(rental.isOjek ? 'Rute Kunjungan Ojek' : 'Rute Kunjungan Destinasi',
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              Text(
+                  rental.isOjek ? 'Rute Kunjungan Ojek' : 'Rute Kunjungan Destinasi',
+                  style: GoogleFonts.poppins(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
@@ -407,8 +475,9 @@ class _SummaryStep extends StatelessWidget {
                     Text(
                       rental.isOjek
                           ? 'Konfirmasi rute pengantaran ojek ke destinasi berikut menggunakan ${rental.selectedVehicleType}:'
-                          : 'Konfirmasi perjalanan ke destinasi berikut menggunakan ${rental.selectedVehicleType} ${driver?.vehicleName ?? ""}:',
-                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary, height: 1.5),
+                          : 'Konfirmasi perjalanan ke destinasi berikut menggunakan ${rental.selectedVehicleType} ${rental.selectedDriver?.vehicleName ?? ""}:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: AppColors.textSecondary, height: 1.5),
                     ),
                     const SizedBox(height: 12),
                     ...spots.asMap().entries.map((entry) {
@@ -423,25 +492,28 @@ class _SummaryStep extends StatelessWidget {
                               margin: const EdgeInsets.only(top: 2),
                               width: 16,
                               height: 16,
-                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                              decoration: const BoxDecoration(
+                                  color: AppColors.primary, shape: BoxShape.circle),
                               child: Center(
-                                child: Text(
-                                  '${idx + 1}',
-                                  style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
-                                ),
+                                child: Text('${idx + 1}',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white)),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                name,
-                                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                              ),
+                              child: Text(name,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary)),
                             ),
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -453,7 +525,10 @@ class _SummaryStep extends StatelessWidget {
           // Price breakdown
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.accentSurface, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: AppColors.accentSurface,
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Column(
               children: [
                 if (rental.isOjek) ...[
@@ -461,7 +536,9 @@ class _SummaryStep extends StatelessWidget {
                   const SizedBox(height: 8),
                   _InfoRow(label: 'Jasa Driver & BBM', value: formatter(rental.rentalPrice - 15000)),
                 ] else ...[
-                  _InfoRow(label: 'Harga sewa (${rental.durationHours} jam)', value: formatter(rental.rentalPrice)),
+                  _InfoRow(
+                      label: 'Harga sewa (${rental.durationHours} jam)',
+                      value: formatter(rental.rentalPrice)),
                 ],
                 const SizedBox(height: 8),
                 _InfoRow(label: 'Biaya layanan (10%)', value: formatter(rental.serviceFee)),
@@ -486,19 +563,37 @@ class _PaymentMethodStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final methods = [
-      {'group': 'E-Wallet', 'options': [
-        {'id': 'gopay', 'name': 'GoPay', 'icon': Icons.account_balance_wallet},
-        {'id': 'ovo', 'name': 'OVO', 'icon': Icons.account_balance_wallet_outlined},
-        {'id': 'dana', 'name': 'DANA', 'icon': Icons.wallet},
-      ]},
-      {'group': 'Transfer Bank', 'options': [
-        {'id': 'bca', 'name': 'BCA Virtual Account', 'icon': Icons.account_balance},
-        {'id': 'bri', 'name': 'BRI Virtual Account', 'icon': Icons.account_balance},
-        {'id': 'mandiri', 'name': 'Mandiri Virtual Account', 'icon': Icons.account_balance},
-      ]},
-      {'group': 'Bayar di Tempat', 'options': [
-        {'id': 'cod', 'name': 'Cash on Delivery (COD)', 'icon': Icons.payments_rounded},
-      ]},
+      {
+        'group': 'E-Wallet',
+        'options': [
+          {'id': 'gopay', 'name': 'GoPay', 'icon': Icons.account_balance_wallet},
+          {'id': 'ovo', 'name': 'OVO', 'icon': Icons.account_balance_wallet_outlined},
+          {'id': 'dana', 'name': 'DANA', 'icon': Icons.wallet},
+          {'id': 'shopeepay', 'name': 'ShopeePay', 'icon': Icons.shopping_bag_outlined},
+        ]
+      },
+      {
+        'group': 'Transfer Bank (Virtual Account)',
+        'options': [
+          {'id': 'bca', 'name': 'BCA Virtual Account', 'icon': Icons.account_balance},
+          {'id': 'bri', 'name': 'BRI Virtual Account', 'icon': Icons.account_balance},
+          {'id': 'bni', 'name': 'BNI Virtual Account', 'icon': Icons.account_balance},
+          {'id': 'mandiri', 'name': 'Mandiri Virtual Account', 'icon': Icons.account_balance},
+        ]
+      },
+      {
+        'group': 'Gerai / Minimarket',
+        'options': [
+          {'id': 'alfamart', 'name': 'Alfamart', 'icon': Icons.store},
+          {'id': 'indomaret', 'name': 'Indomaret', 'icon': Icons.store_mall_directory},
+        ]
+      },
+      {
+        'group': 'Bayar di Tempat',
+        'options': [
+          {'id': 'cod', 'name': 'Cash on Delivery (COD)', 'icon': Icons.payments_rounded},
+        ]
+      },
     ];
 
     return SingleChildScrollView(
@@ -506,17 +601,27 @@ class _PaymentMethodStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pilih Metode Pembayaran', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('Pilih Metode Pembayaran',
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Pembayaran diproses secara aman melalui Midtrans.',
+              style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
           const SizedBox(height: 16),
           ...methods.map((group) {
             final options = group['options'] as List<Map<String, dynamic>>;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(group['group'] as String, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary, letterSpacing: 0.5)),
+                Text(group['group'] as String,
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                        letterSpacing: 0.5)),
                 const SizedBox(height: 8),
                 ...options.map((opt) {
                   final isSelected = rental.paymentMethod == opt['id'];
+                  final isCod = opt['id'] == 'cod';
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Bounceable(
@@ -526,14 +631,37 @@ class _PaymentMethodStep extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isSelected ? AppColors.primarySurface : AppColors.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: isSelected ? AppColors.primary : AppColors.divider, width: isSelected ? 2 : 1),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.divider,
+                            width: isSelected ? 2 : 1,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(opt['icon'] as IconData, color: isSelected ? AppColors.primary : AppColors.textMuted, size: 22),
+                            Icon(opt['icon'] as IconData,
+                                color: isSelected ? AppColors.primary : AppColors.textMuted,
+                                size: 22),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(opt['name'] as String, style: GoogleFonts.poppins(fontSize: 13, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, color: AppColors.textPrimary))),
-                            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(opt['name'] as String,
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
+                                          color: AppColors.textPrimary)),
+                                  if (isCod)
+                                    Text('Konfirmasi lewat WhatsApp Admin',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 10, color: AppColors.textMuted)),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
                           ],
                         ),
                       ),
@@ -559,7 +687,19 @@ class _ConfirmStep extends StatelessWidget {
   const _ConfirmStep({required this.rental, required this.formatter});
 
   String _methodName(String id) {
-    final names = {'gopay': 'GoPay', 'ovo': 'OVO', 'dana': 'DANA', 'bca': 'BCA VA', 'bri': 'BRI VA', 'mandiri': 'Mandiri VA', 'cod': 'COD'};
+    const names = {
+      'gopay': 'GoPay',
+      'ovo': 'OVO',
+      'dana': 'DANA',
+      'shopeepay': 'ShopeePay',
+      'bca': 'BCA VA',
+      'bri': 'BRI VA',
+      'bni': 'BNI VA',
+      'mandiri': 'Mandiri VA',
+      'alfamart': 'Alfamart',
+      'indomaret': 'Indomaret',
+      'cod': 'Cash on Delivery (COD)',
+    };
     return names[id] ?? id;
   }
 
@@ -570,11 +710,16 @@ class _ConfirmStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Review Pesanan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('Review Pesanan',
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)]),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
+            ),
             child: Column(
               children: [
                 _InfoRow(label: 'Driver', value: rental.selectedDriver?.name ?? '-'),
@@ -595,7 +740,9 @@ class _ConfirmStep extends StatelessWidget {
                 if (rental.isOjek) ...[
                   _InfoRow(label: 'Penyewaan Kendaraan', value: formatter(15000)),
                   const Divider(color: AppColors.divider, height: 20),
-                  _InfoRow(label: 'Jasa Driver & BBM', value: formatter(rental.rentalPrice - 15000)),
+                  _InfoRow(
+                      label: 'Jasa Driver & BBM',
+                      value: formatter(rental.rentalPrice - 15000)),
                 ] else ...[
                   _InfoRow(label: 'Harga Sewa', value: formatter(rental.rentalPrice)),
                 ],
@@ -606,6 +753,29 @@ class _ConfirmStep extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          if (rental.isCodPayment)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warning.withOpacity(0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Dengan memilih COD, Anda akan menghubungi admin via WhatsApp untuk konfirmasi pesanan. Pembayaran dilakukan saat driver tiba.',
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: AppColors.textPrimary, height: 1.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -613,12 +783,18 @@ class _ConfirmStep extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════
-// STEP 4: SUCCESS
+// STEP 4A: COD — Konfirmasi via WhatsApp
 // ═══════════════════════════════════════════
-class _SuccessStep extends StatelessWidget {
+class _CodStep extends StatelessWidget {
   final RentalProvider rental;
   final String Function(int) formatter;
-  const _SuccessStep({required this.rental, required this.formatter});
+  final VoidCallback onConfirm;
+
+  const _CodStep({
+    required this.rental,
+    required this.formatter,
+    required this.onConfirm,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -630,9 +806,360 @@ class _SuccessStep extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // Success animation
             Container(
-              width: 100, height: 100,
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                color: const Color(0xFF25D366).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.phone_in_talk_rounded, size: 48, color: Color(0xFF25D366)),
+            ),
+            const SizedBox(height: 20),
+            Text('Konfirmasi Pesanan COD',
+                style: GoogleFonts.poppins(
+                    fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            Text(
+              'Pesanan Anda telah dicatat. Hubungi admin via WhatsApp untuk konfirmasi dan jadwalkan penjemputan.',
+              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary, height: 1.6),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            // Order ref card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  Text('Nomor Pesanan',
+                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                  const SizedBox(height: 4),
+                  Text(payment?.referenceNumber ?? '-',
+                      style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: 1)),
+                  const Divider(height: 20),
+                  _InfoRow(
+                      label: 'Total Bayar',
+                      value: formatter(payment?.totalAmount ?? rental.totalAmount),
+                      isBold: true),
+                  const SizedBox(height: 4),
+                  _InfoRow(
+                      label: 'Metode',
+                      value: 'Cash on Delivery',
+                      isBold: false),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // WhatsApp button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final ref = payment?.referenceNumber ?? '-';
+                  final total = formatter(payment?.totalAmount ?? rental.totalAmount);
+                  final driver = rental.selectedDriver?.name ?? '-';
+                  final msg = Uri.encodeComponent(
+                      'Halo Admin Routee! 👋\n\nSaya ingin konfirmasi pesanan COD:\n'
+                      '📋 No. Pesanan: $ref\n'
+                      '🚗 Driver: $driver\n'
+                      '💰 Total: $total\n'
+                      '📅 Tanggal: ${rental.rentalDate.isNotEmpty ? rental.rentalDate : "Secepatnya"}\n\n'
+                      'Mohon konfirmasi dan info jadwal penjemputan. Terima kasih!');
+                  launchUrl(
+                    Uri.parse('https://wa.me/${AppStrings.adminWhatsApp.replaceAll('+', '')}?text=$msg'),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+                icon: const Icon(Icons.chat_rounded),
+                label: Text('Hubungi Admin via WhatsApp',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF25D366),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Selesai button
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: onConfirm,
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                label: Text('Sudah Hubungi Admin, Lanjutkan',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════
+// STEP 4B: MIDTRANS — WebView in-app + Status Check
+// ═══════════════════════════════════════════
+class _MidtransWebViewStep extends StatefulWidget {
+  final RentalProvider rental;
+  final String Function(int) formatter;
+  final VoidCallback onPaymentSuccess;
+
+  const _MidtransWebViewStep({
+    required this.rental,
+    required this.formatter,
+    required this.onPaymentSuccess,
+  });
+
+  @override
+  State<_MidtransWebViewStep> createState() => _MidtransWebViewStepState();
+}
+
+class _MidtransWebViewStepState extends State<_MidtransWebViewStep> {
+  bool _isChecking = false;
+
+  Future<void> _openPaymentInBrowser() async {
+    final payment = widget.rental.currentPayment;
+    if (payment == null) return;
+
+    // Use the Midtrans Snap redirect URL — the order_id is referenceNumber
+    final snapUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/${payment.referenceNumber}';
+    final uri = Uri.parse(snapUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _checkStatus() async {
+    setState(() => _isChecking = true);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(height: 16),
+              Text('Memverifikasi pembayaran...',
+                  style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final success = await widget.rental.checkPaymentStatus();
+
+    if (mounted) {
+      Navigator.pop(context);
+      setState(() => _isChecking = false);
+
+      if (success) {
+        widget.onPaymentSuccess();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Pembayaran belum terdeteksi. Selesaikan transaksi terlebih dahulu.'),
+            backgroundColor: AppColors.primary,
+            action: SnackBarAction(
+              label: 'Coba Lagi',
+              textColor: Colors.white,
+              onPressed: _checkStatus,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final payment = widget.rental.currentPayment;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.pending_actions_rounded, size: 48, color: AppColors.warning),
+            ),
+            const SizedBox(height: 20),
+            Text('Menunggu Pembayaran',
+                style: GoogleFonts.poppins(
+                    fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            Text(
+              'Selesaikan pembayaran melalui portal Midtrans yang telah dibuka.',
+              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            // Order ID Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
+              ),
+              child: Column(
+                children: [
+                  Text('ID Transaksi',
+                      style:
+                          GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                  const SizedBox(height: 4),
+                  Text(payment?.referenceNumber ?? '-',
+                      style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: 0.5)),
+                  const Divider(height: 24),
+                  _InfoRow(
+                      label: 'Total Pembayaran',
+                      value: widget.formatter(payment?.totalAmount ?? 0),
+                      isBold: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Open in browser
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _openPaymentInBrowser,
+                icon: const Icon(Icons.open_in_browser_rounded),
+                label: Text('Buka Halaman Pembayaran',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Check status
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: _isChecking ? null : _checkStatus,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text('Cek Status Pembayaran',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Info tips
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.lightbulb_outline_rounded,
+                          color: AppColors.primary, size: 16),
+                      const SizedBox(width: 8),
+                      Text('Cara Bayar',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...[
+                    '1. Tekan "Buka Halaman Pembayaran" di atas',
+                    '2. Pilih metode bayar dan selesaikan transaksi',
+                    '3. Kembali ke aplikasi ini',
+                    '4. Tekan "Cek Status Pembayaran"',
+                  ].map((t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(t,
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: AppColors.textSecondary)),
+                      )),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════
+// STEP 5: SUCCESS
+// ═══════════════════════════════════════════
+class _SuccessStep extends StatelessWidget {
+  final RentalProvider rental;
+  final String Function(int) formatter;
+  const _SuccessStep({required this.rental, required this.formatter});
+
+  @override
+  Widget build(BuildContext context) {
+    final payment = rental.currentPayment;
+    final isCod = payment?.method == 'cod';
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Container(
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 color: AppColors.success.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -640,9 +1167,19 @@ class _SuccessStep extends StatelessWidget {
               child: const Icon(Icons.check_circle_rounded, size: 64, color: AppColors.success),
             ),
             const SizedBox(height: 20),
-            Text('Pembayaran Berhasil! 🎉', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(
+              isCod ? 'Pesanan Dikonfirmasi! 🎉' : 'Pembayaran Berhasil! 🎉',
+              style: GoogleFonts.poppins(
+                  fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
             const SizedBox(height: 8),
-            Text('Driver sedang menuju lokasi penjemputan', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary)),
+            Text(
+              isCod
+                  ? 'Admin akan menghubungi Anda untuk konfirmasi jadwal'
+                  : 'Driver sedang menuju lokasi penjemputan',
+              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
 
             // Reference number
@@ -656,9 +1193,15 @@ class _SuccessStep extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Text('Nomor Referensi', style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(isCod ? 'Nomor Pesanan' : 'Nomor Referensi',
+                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary)),
                   const SizedBox(height: 4),
-                  Text(payment?.referenceNumber ?? '-', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 2)),
+                  Text(payment?.referenceNumber ?? '-',
+                      style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: 1)),
                 ],
               ),
             ),
@@ -667,18 +1210,28 @@ class _SuccessStep extends StatelessWidget {
             // Details
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)]),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: AppColors.cardShadow, blurRadius: 10)],
+              ),
               child: Column(
                 children: [
                   _InfoRow(label: 'Driver', value: rental.selectedDriver?.name ?? '-'),
                   const Divider(color: AppColors.divider, height: 20),
-                  _InfoRow(label: 'Kendaraan', value: '${rental.selectedDriver?.vehicleName ?? ''} (${rental.selectedDriver?.plateNumber ?? ''})'),
+                  _InfoRow(
+                      label: 'Kendaraan',
+                      value:
+                          '${rental.selectedDriver?.vehicleName ?? ''} (${rental.selectedDriver?.plateNumber ?? ''})'),
                   const Divider(color: AppColors.divider, height: 20),
                   if (rental.isOjek) ...[
                     _InfoRow(label: 'Penjemputan', value: rental.pickupTime),
                     const Divider(color: AppColors.divider, height: 20),
                   ],
-                  _InfoRow(label: 'Total Bayar', value: formatter(payment?.totalAmount ?? 0), isBold: true),
+                  _InfoRow(
+                      label: isCod ? 'Total (Bayar di Tempat)' : 'Total Bayar',
+                      value: formatter(payment?.totalAmount ?? 0),
+                      isBold: true),
                 ],
               ),
             ),
@@ -694,7 +1247,8 @@ class _SuccessStep extends StatelessWidget {
                   context.push('/chat/$driverId');
                 },
                 icon: const Icon(Icons.chat_rounded),
-                label: Text('Chat Driver', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                label: Text('Chat Driver',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -703,28 +1257,28 @@ class _SuccessStep extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  final paymentId = payment?.id ?? '';
-                  context.push('/driver-tracking/$paymentId');
-                },
-                icon: const Icon(Icons.map_rounded),
-                label: Text('Lacak Driver', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            if (!isCod)
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    final paymentId = payment?.id ?? '';
+                    context.push('/driver-tracking/$paymentId');
+                  },
+                  icon: const Icon(Icons.map_rounded),
+                  label: Text('Lacak Driver',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
+            if (!isCod) const SizedBox(height: 10),
             TextButton(
-              onPressed: () {
-                rental.reset();
-                context.go('/');
-              },
-              child: Text('Kembali ke Beranda', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textMuted)),
+              onPressed: () => context.go('/'),
+              child: Text('Kembali ke Beranda',
+                  style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textMuted)),
             ),
           ],
         ),
@@ -747,8 +1301,19 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.poppins(fontSize: 12, color: isBold ? AppColors.textPrimary : AppColors.textSecondary, fontWeight: isBold ? FontWeight.w700 : FontWeight.w400)),
-        Text(value, style: GoogleFonts.poppins(fontSize: isBold ? 14 : 12, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: isBold ? AppColors.primary : AppColors.textPrimary)),
+        Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: isBold ? AppColors.textPrimary : AppColors.textSecondary,
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w400)),
+        Flexible(
+          child: Text(value,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.poppins(
+                  fontSize: isBold ? 14 : 12,
+                  fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+                  color: isBold ? AppColors.primary : AppColors.textPrimary)),
+        ),
       ],
     );
   }

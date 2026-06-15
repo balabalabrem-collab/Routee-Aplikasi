@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/data/destinations_data.dart';
 import '../../core/data/culinary_data.dart';
@@ -21,11 +22,212 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   final ScrollController _scrollController = ScrollController();
+  late FlutterTts _flutterTts;
+  bool _isPlayingAudio = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _flutterTts = FlutterTts();
+    _initTts();
+  }
+
+  Future<void> _setupVoiceForLanguage(String lang) async {
+    try {
+      await _flutterTts.setLanguage(lang);
+      List<dynamic>? voices = await _flutterTts.getVoices;
+      if (voices != null) {
+        final langPrefix = lang.split('-').first.toLowerCase();
+        final matchingVoices = voices.where((v) {
+          final locale = v['locale']?.toString().toLowerCase().replaceAll('_', '-') ?? '';
+          return locale.startsWith(langPrefix);
+        }).toList();
+
+        if (matchingVoices.isNotEmpty) {
+          dynamic selectedVoice = matchingVoices.firstWhere(
+            (v) {
+              final name = v['name']?.toString().toLowerCase() ?? '';
+              return name.contains('network') || name.contains('neural') || name.contains('wavenet');
+            },
+            orElse: () => matchingVoices.firstWhere(
+              (v) {
+                final name = v['name']?.toString().toLowerCase() ?? '';
+                return name.contains('premium') || name.contains('high');
+              },
+              orElse: () => matchingVoices.first,
+            ),
+          );
+
+          await _flutterTts.setVoice({
+            "name": selectedVoice['name'],
+            "locale": selectedVoice['locale'],
+          });
+          debugPrint('TTS: Selected voice: ${selectedVoice['name']} for $lang');
+        }
+      }
+    } catch (e) {
+      debugPrint('TTS Error setting voice: $e');
+    }
+  }
+
+  Future<void> _initTts() async {
+    await _setupVoiceForLanguage("id-ID");
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(1.0);
+
+    _flutterTts.setCompletionHandler(() {
+      if (mounted) {
+        setState(() => _isPlayingAudio = false);
+      }
+    });
+
+    _flutterTts.setCancelHandler(() {
+      if (mounted) {
+        setState(() => _isPlayingAudio = false);
+      }
+    });
+
+    _flutterTts.setErrorHandler((msg) {
+      debugPrint('TTS Error: $msg');
+      if (mounted) {
+        setState(() => _isPlayingAudio = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('TTS Error: $msg'),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _flutterTts.stop();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Widget _buildAudioGuideCard(DestinationModel destination, String localeCode) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A3219), Color(0xFF6D4C2A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.audiotrack_rounded, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localeCode == 'en' ? 'Audio Guide Heritage' : 'Audio Panduan Heritage',
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _isPlayingAudio
+                      ? (localeCode == 'en' ? 'Playing narration...' : 'Memutar narasi...')
+                      : (localeCode == 'en' ? 'Listen to destination history' : 'Dengarkan sejarah destinasi'),
+                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+          Bounceable(
+            onTap: () async {
+              if (_isPlayingAudio) {
+                await _flutterTts.stop();
+                setState(() => _isPlayingAudio = false);
+              } else {
+                final lang = localeCode == 'en' ? "en-US" : "id-ID";
+                bool isAvailable = false;
+                try {
+                  isAvailable = await _flutterTts.isLanguageAvailable(lang);
+                } catch (e) {
+                  debugPrint('TTS availability check error: $e');
+                }
+
+                if (!isAvailable && lang == "id-ID") {
+                  try {
+                    isAvailable = await _flutterTts.isLanguageAvailable("id");
+                  } catch (_) {}
+                }
+
+                if (!isAvailable) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          localeCode == 'en'
+                              ? 'Text-to-Speech language ($lang) is not available or not active on this device. Please check your system settings.'
+                              : 'Bahasa Text-to-Speech ($lang) tidak didukung atau belum aktif di perangkat Anda. Silakan pasang/aktifkan di pengaturan sistem.',
+                        ),
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                }
+
+                await _setupVoiceForLanguage(lang);
+                await _flutterTts.setPitch(1.0);
+                await _flutterTts.setSpeechRate(1.0);
+                setState(() => _isPlayingAudio = true);
+                final textToSpeak = destination.audioNarrative ?? destination.description;
+                final result = await _flutterTts.speak(textToSpeak);
+                if (result == 0) {
+                  // TTS speak failed to start
+                  setState(() => _isPlayingAudio = false);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          localeCode == 'en'
+                              ? 'Failed to start TTS playback. Please make sure media volume is up and a TTS engine is installed.'
+                              : 'Gagal memulai pemutaran suara. Pastikan volume media menyala dan engine TTS terpasang.',
+                        ),
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isPlayingAudio ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -84,7 +286,7 @@ class _DetailScreenState extends State<DetailScreen> {
         controller: _scrollController,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // ─── HERO IMAGE (SliverAppBar with stretch & parallax) ─────────────────
+          // HERO IMAGE
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -117,7 +319,6 @@ class _DetailScreenState extends State<DetailScreen> {
                       if (_scrollController.hasClients) {
                         offset = _scrollController.offset;
                       }
-                      // Parallax translation: move image slower than scroll
                       final translation = offset > 0 ? offset * 0.38 : 0.0;
                       return Transform.translate(
                         offset: Offset(0, translation),
@@ -176,7 +377,7 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
 
-          // ─── CONTENT ───────────────────────────────────
+          // CONTENT
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -308,6 +509,11 @@ class _DetailScreenState extends State<DetailScreen> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 24),
+
+                  // Audio Guide Heritage Integration
+                  _buildAudioGuideCard(destination, language.localeCode),
 
                   const SizedBox(height: 24),
 
