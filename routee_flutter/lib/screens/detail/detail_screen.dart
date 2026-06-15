@@ -191,7 +191,9 @@ class _DetailScreenState extends State<DetailScreen> {
 
                 await _setupVoiceForLanguage(lang);
                 await _flutterTts.setPitch(1.0);
-                await _flutterTts.setSpeechRate(1.0);
+                await _flutterTts.setSpeechRate(
+                  Theme.of(context).platform == TargetPlatform.android ? 0.5 : 1.0,
+                );
                 setState(() => _isPlayingAudio = true);
                 final textToSpeak = destination.audioNarrative ?? destination.description;
                 final result = await _flutterTts.speak(textToSpeak);
