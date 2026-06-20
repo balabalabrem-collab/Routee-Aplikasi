@@ -943,11 +943,26 @@ class _MidtransWebViewStepState extends State<_MidtransWebViewStep> {
     final payment = widget.rental.currentPayment;
     if (payment == null) return;
 
-    // Use the Midtrans Snap redirect URL — the order_id is referenceNumber
-    final snapUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/${payment.referenceNumber}';
-    final uri = Uri.parse(snapUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (payment.referenceNumber.startsWith('MOCK-')) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mode Demo: Membuka simulator pembayaran. (Jika HP offline, silakan kembali dan langsung klik Cek Status Pembayaran)'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+      final uri = Uri.parse('https://simulator.sandbox.midtrans.com');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } else {
+      // Use the Midtrans Snap redirect URL — the order_id is referenceNumber
+      final snapUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/${payment.referenceNumber}';
+      final uri = Uri.parse(snapUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
     }
   }
 
