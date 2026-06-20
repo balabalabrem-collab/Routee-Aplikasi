@@ -69,9 +69,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     }
 
     final language = context.watch<LanguageProvider>();
+    final auth = context.watch<AuthProvider>();
 
     final rental = context.watch<RentalProvider>();
-    final isOjekActive = rental.rentalStatus == 'onTrip' && rental.isOjek && rental.selectedDriver != null;
+    final isOjekActive = auth.isLoggedIn && rental.rentalStatus == 'onTrip' && rental.isOjek && rental.selectedDriver != null;
 
     return PopScope(
       canPop: false,
