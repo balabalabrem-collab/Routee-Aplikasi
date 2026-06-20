@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/home_scroll_provider.dart';
 import '../../providers/rental_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class MainScaffold extends StatefulWidget {
   final Widget child;
